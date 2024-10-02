@@ -97,7 +97,6 @@ def main():
     st.title('Análise de Regressão')
     tabela = carregar_tabela()
     if tabela is not None:
-        st.write(tabela.columns)
         
         # Plota os gráficos antes de exibir as opções de regressões
         fig = px.scatter(tabela, x="Carga", y="Recalque")
