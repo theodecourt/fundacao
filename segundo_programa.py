@@ -45,7 +45,7 @@ def calcular_valores(Q, NSPT, tipo_solo):
 
 # Função principal do segundo programa para ser exibido no Streamlit
 def segundo_programa():
-    st.title("Segundo Programa - Cálculos Geotécnicos")
+    st.title("Cálculos Geotécnicos")
 
     # Solicita os dados de entrada do usuário
     Q = st.number_input("Digite o valor de Q (tf):", min_value=0.0, value=100.0, key="Q")
