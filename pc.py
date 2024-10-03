@@ -15,7 +15,7 @@ def carregar_tabela():
     if uploaded_file is not None:
         return pd.read_csv(uploaded_file, delimiter=';')
 
-# Função para calcular a intersecção entre duas regressões
+# Função para calcular a interseccao entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
@@ -82,12 +82,12 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
         st.write('Equação da regressão: ', equacao)
         st.write('R2: ', R_sq)
     
-    # Calcular e mostrar pontos de interseção entre todas as combinações possíveis
+    # Calcular e mostrar pontos de interseccao entre todas as combinações possíveis
     for i in range(num_regressoes):
         for j in range(i + 1, num_regressoes):
             interseccao = calcular_interseccao(regressions[i], regressions[j], tipos[i], tipos[j])
-            plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
-            st.write(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
+            plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseccao com um 'x' vermelho
+            st.write(f'Interseccao entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
     
     plt.xlabel('Carga')
     plt.ylabel('Rigidez')
@@ -95,81 +95,49 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
     plt.legend().set_visible(False)
     st.pyplot(plt)
 
-# Função principal para executar o fluxo
-def main():
-    # Adiciona o CSS para ajustar o layout e centralização
-    st.markdown("""
-    <style>
-    .centered {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        text-align: center;
-    }
-    .stApp {
-        background-color: #f5f5f5;
-        padding: 20px;
-    }
-    .stButton button {
-        margin: 10px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
+# Função principal para a página
+def pagina_principal():
     st.title('Luciano Decourt')
+    st.write("Bem-vindo ao site de Luciano Decourt")
 
-    # Container centralizado para organizar os botões e o conteúdo
-    with st.container():
-        st.markdown('<div class="centered">', unsafe_allow_html=True)
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            if st.button('O engenheiro'):
-                st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
-        
-        with col2:
-            if st.button('Obras'):
-                st.write("Botão 'Obras' pressionado.")
-        
-        with col3:
-            if st.button('Artigos'):
-                st.write("Botão 'Artigos' pressionado.")
-        
-        with col4:
-            if st.button('Programas'):
-                st.write("Botão 'Programas' pressionado.")
-        
-        st.write("---")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    tabela = carregar_tabela()
-    if tabela is not None:
-        # Plota os gráficos antes de exibir as opções de regressões
-        fig = px.scatter(tabela, x="Carga", y="Recalque")
-        fig.update_yaxes(autorange="reversed")
-        st.plotly_chart(fig)
+# Função para a página "O engenheiro"
+def pagina_engenheiro():
+    st.title('Luciano Decourt')
+    st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
 
-        tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
-        fig2 = px.scatter(tabela, x="Carga", y="rigidez")
-        st.plotly_chart(fig2)
+# Função para a página "Obras"
+def pagina_obras():
+    st.title('Obras de Luciano Decourt')
+    st.write("Conteúdo de obras será adicionado aqui.")
 
-        tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
-        tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
-        tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
-        
-        # Escolha o número de regressões
-        num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
-        
-        pontos_tipos = []
-        for i in range(num_regressoes):
-            lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1)
-            lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela))
-            tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
-            pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
-        
-        if st.button('Calcular Regressões'):
-            calcular_regressao(tabela, num_regressoes, pontos_tipos)
+# Função para a página "Artigos"
+def pagina_artigos():
+    st.title('Artigos de Luciano Decourt')
+    st.write("Conteúdo de artigos será adicionado aqui.")
+
+# Função para a página "Programas"
+def pagina_programas():
+    st.title('Programas de Luciano Decourt')
+    st.write("Conteúdo de programas será adicionado aqui.")
+
+# Função principal para a navegação
+def main():
+    st.sidebar.title("Navegação")
+    pagina = st.sidebar.selectbox(
+        "Selecione a página:",
+        ["Página Principal", "O engenheiro", "Obras", "Artigos", "Programas"]
+    )
+
+    if pagina == "Página Principal":
+        pagina_principal()
+    elif pagina == "O engenheiro":
+        pagina_engenheiro()
+    elif pagina == "Obras":
+        pagina_obras()
+    elif pagina == "Artigos":
+        pagina_artigos()
+    elif pagina == "Programas":
+        pagina_programas()
 
 if __name__ == '__main__':
     main()

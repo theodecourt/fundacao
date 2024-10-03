@@ -1,7 +1,7 @@
 def mostrar_curriculo():
     return """
     <div style="text-align: justify; font-size:16px;">
-    <h2>Luciano Décourt</h2>
+    <h2>Luciano Decourt</h2>
 
     <h4>Formação Profissional:</h4>
     <ul>
