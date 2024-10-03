@@ -4,7 +4,7 @@ def mostrar_curriculo():
     # Carregar e exibir a imagem no lugar do título
     st.image("foto.jpeg", caption="Luciano Decourt", use_column_width=True)
     
-    # Currículo com formatação HTML
+    # Currículo com formatação HTMLs
     return """
     <div style="text-align: justify; font-size:16px;">
     <h4>Formação Profissional:</h4>
