@@ -48,34 +48,39 @@ def segundo_programa():
     st.title("Segundo Programa - Cálculos Geotécnicos")
 
     # Solicita os dados de entrada do usuário
-    Q = st.number_input("Digite o valor de Q (tf):", min_value=0.0, value=100.0)
-    NSPT = st.number_input("Digite o valor de NSPT:", min_value=0.0, value=10.0)
-    tipo_solo = st.selectbox("Digite o tipo de solo (1, 2 ou 3):", [1, 2, 3])
+    Q = st.number_input("Digite o valor de Q (tf):", min_value=0.0, value=100.0, key="Q")
+    NSPT = st.number_input("Digite o valor de NSPT:", min_value=0.0, value=10.0, key="NSPT")
+    tipo_solo = st.selectbox("Digite o tipo de solo (1, 2 ou 3):", [1, 2, 3], key="tipo_solo")
 
-    if st.button("Calcular"):
-        # Calcula os valores iniciais
-        quc, q, Beq, area, s0 = calcular_valores(Q, NSPT, tipo_solo)
+    # Inicializa os valores na session_state se ainda não estiverem salvos
+    if "quc" not in st.session_state:
+        if st.button("Calcular valores iniciais"):
+            quc, q, Beq, area, s0 = calcular_valores(Q, NSPT, tipo_solo)
+            # Salva os valores no session_state
+            st.session_state["quc"] = quc
+            st.session_state["q"] = q
+            st.session_state["Beq"] = Beq
+            st.session_state["area"] = area
+            st.session_state["s0"] = s0
 
-        # Exibe os resultados iniciais
-        st.write(f"quc (tf/m²): {quc}")
-        st.write(f"q (tf/m²): {q}")
-        st.write(f"Beq (m): {Beq}")
-        st.write(f"Área inicial (m²): {area}")
-        st.write(f"s0 inicial (mm): {s0}")
+    if "quc" in st.session_state:
+        # Exibe os resultados salvos
+        st.write(f"quc (tf/m²): {st.session_state['quc']}")
+        st.write(f"q (tf/m²): {st.session_state['q']}")
+        st.write(f"Beq (m): {st.session_state['Beq']}")
+        st.write(f"Área inicial (m²): {st.session_state['area']}")
+        st.write(f"s0 inicial (mm): {st.session_state['s0']}")
 
         # Solicita o valor de s1 (mm)
         s1 = st.number_input("Digite o valor de s1 (mm):", min_value=0.0, value=10.0)
 
-        # Calcula o novo q que resultaria em s0 = s1
-        q_new = ajustar_q_para_s1(Q, s1, quc, 1, 0.42)
+        if st.button("Ajustar q para s1"):
+            # Calcula o novo q que resultaria em s0 = s1
+            q_new = ajustar_q_para_s1(Q, s1, st.session_state["quc"], 1, 0.42)
+            Beq_new = math.sqrt(Q / q_new)
+            area_new = Beq_new ** 2
 
-        # Calcula o novo Beq com o q ajustado
-        Beq_new = math.sqrt(Q / q_new)
-
-        # Calcula a nova área com o novo Beq
-        area_new = Beq_new ** 2
-
-        # Exibe o resultado do novo q, Beq e área
-        st.write(f"Novo q (tf/m²) para s0 = s1: {q_new}")
-        st.write(f"Novo Beq (m) com q ajustado: {Beq_new}")
-        st.write(f"Nova Área (m²) com Beq ajustado: {area_new}")
+            # Exibe o resultado do novo q, Beq e área
+            st.write(f"Novo q (tf/m²) para s0 = s1: {q_new}")
+            st.write(f"Novo Beq (m) com q ajustado: {Beq_new}")
+            st.write(f"Nova Área (m²) com Beq ajustado: {area_new}")
