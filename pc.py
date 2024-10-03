@@ -5,6 +5,10 @@ from programas import pagina_programas  # Importa a função da página Programa
 # Função principal para a página
 def pagina_principal():
     st.title('Luciano Decourt')
+    
+    # Carregar e exibir a imagem na página principal
+    st.image("foto_luciano.jpg", caption="Luciano Decourt", width=300)
+    
     st.write("Bem-vindo ao site de Luciano Decourt")
 
 # Função para a página "O engenheiro"
@@ -31,7 +35,7 @@ def main():
     )
 
     if pagina == "Página Principal":
-        pagina_principal()
+        pagina_principal()  # Chama a função da página principal
     elif pagina == "O engenheiro":
         pagina_engenheiro()
     elif pagina == "Obras":
@@ -41,9 +45,5 @@ def main():
     elif pagina == "Programas":
         pagina_programas()  # Chama a função de programas importada de programas.py
 
-    # Carregar e exibir a imagem no lugar do título
-    st.image("foto_luciano.jpg", caption="Luciano Decourt", width=300)
-
 if __name__ == '__main__':
     main()
-
