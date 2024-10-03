@@ -118,7 +118,34 @@ def pagina_artigos():
 # Função para a página "Programas"
 def pagina_programas():
     st.title('Programas de Luciano Decourt')
-    st.write("Conteúdo de programas será adicionado aqui.")
+
+    tabela = carregar_tabela()
+    if tabela is not None:
+        # Plota os gráficos antes de exibir as opções de regressões
+        fig = px.scatter(tabela, x="Carga", y="Recalque")
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig)
+
+        tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
+        fig2 = px.scatter(tabela, x="Carga", y="rigidez")
+        st.plotly_chart(fig2)
+
+        tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
+        tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
+        tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
+        
+        # Escolha o número de regressões
+        num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
+        
+        pontos_tipos = []
+        for i in range(num_regressoes):
+            lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1)
+            lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela))
+            tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
+            pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+        
+        if st.button('Calcular Regressões'):
+            calcular_regressao(tabela, num_regressoes, pontos_tipos)
 
 # Função principal para a navegação
 def main():
