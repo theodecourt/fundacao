@@ -15,7 +15,7 @@ def carregar_tabela():
     if uploaded_file is not None:
         return pd.read_csv(uploaded_file, delimiter=';')
 
-# Função para calcular a intersecção entre duas regressões
+# Função para calcular a interseccao entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
@@ -97,55 +97,50 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
 
 # Função principal para executar o fluxo
 def main():
-    # Adiciona o CSS para ajustar o layout e centralização
+    # Adiciona o CSS para ajustar o layout do currículo
     st.markdown("""
     <style>
-    .centered {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        text-align: center;
-    }
-    .stApp {
-        background-color: #f5f5f5;
+    .center-curriculo {
+        max-width: 800px;
+        margin: 0 auto;
         padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: left;
     }
-    .stButton button {
-        margin: 10px;
+    .center-curriculo h2, .center-curriculo h4 {
+        text-align: center;
     }
     </style>
     """, unsafe_allow_html=True)
 
     st.title('Luciano Decourt')
 
-    # Container centralizado para organizar os botões e o conteúdo
-    with st.container():
-        st.markdown('<div class="centered">', unsafe_allow_html=True)
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            if st.button('O engenheiro'):
-                st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
-        
-        with col2:
-            if st.button('Obras'):
-                st.write("Botão 'Obras' pressionado.")
-        
-        with col3:
-            if st.button('Artigos'):
-                st.write("Botão 'Artigos' pressionado.")
-        
-        with col4:
-            if st.button('Programas'):
-                st.write("Botão 'Programas' pressionado.")
-        
-        st.write("---")
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Menu
+    col1, col2, col3, col4 = st.columns(4)
     
+    with col1:
+        if st.button('O engenheiro'):
+            st.markdown(f'<div class="center-curriculo">{mostrar_curriculo()}</div>', unsafe_allow_html=True)
+    
+    with col2:
+        if st.button('Obras'):
+            st.write("Botão 'Obras' pressionado.")
+    
+    with col3:
+        if st.button('Artigos'):
+            st.write("Botão 'Artigos' pressionado.")
+    
+    with col4:
+        if st.button('Programas'):
+            st.write("Botão 'Programas' pressionado.")
+    
+    st.write("---")
+    
+    # Funções adicionais...
     tabela = carregar_tabela()
     if tabela is not None:
-        # Plota os gráficos antes de exibir as opções de regressões
         fig = px.scatter(tabela, x="Carga", y="Recalque")
         fig.update_yaxes(autorange="reversed")
         st.plotly_chart(fig)
@@ -157,17 +152,16 @@ def main():
         tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
         tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
         tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
-        
-        # Escolha o número de regressões
+
         num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
-        
+
         pontos_tipos = []
         for i in range(num_regressoes):
             lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1)
             lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela))
             tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
-        
+
         if st.button('Calcular Regressões'):
             calcular_regressao(tabela, num_regressoes, pontos_tipos)
 
