@@ -1,6 +1,7 @@
 import streamlit as st
 from curriculo import mostrar_curriculo
 from programas import pagina_programas
+from videos import pagina_videos
 
 # Função principal para a página
 def pagina_principal():
@@ -48,7 +49,7 @@ def main():
     # Exibe as opções de navegação como Radio Button
     pagina = st.sidebar.radio(
         "",  # O label vazio, pois já colocamos o título personalizado acima
-        ["Página Principal", "O Engenheiro", "Obras", "Artigos", "Programas"]
+        ["Página Principal", "O Engenheiro", "Obras", "Artigos", "Programas", "Vídeos"]
     )
 
     # Exibe a página correspondente
@@ -62,6 +63,8 @@ def main():
         pagina_artigos()
     elif pagina == "Programas":
         pagina_programas()
+    elif pagina == "Vídeos":
+        pagina_videos()  # Chama a função da página de vídeos
 
 if __name__ == '__main__':
     main()
