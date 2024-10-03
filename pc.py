@@ -1,5 +1,5 @@
 import streamlit as st
-from curriculo import mostrar_curriculo
+from curriculo import mostrar_curriculo, exibir_foto  # Importa a função para exibir a foto
 from programas import pagina_programas  # Importa a função da página Programas
 
 # Função principal para a página
@@ -9,7 +9,7 @@ def pagina_principal():
 
 # Função para a página "O engenheiro"
 def pagina_engenheiro():
-    st.title('Luciano Decourt')
+    exibir_foto()  # Exibe a foto de Luciano Decourt
     st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
 
 # Função para a página "Obras"
