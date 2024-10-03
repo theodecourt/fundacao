@@ -21,9 +21,13 @@ def pagina_artigos():
 
 # Função principal para a navegação
 def main():
-    # Injetando CSS para alterar a cor do radio button e o cursor do seletor de programas
+    # Injetando CSS para alterar a cor do selectbox e o cursor
     st.markdown("""
         <style>
+        /* Mudar cursor do selectbox para pointer (mãozinha) */
+        select {
+            cursor: pointer;
+        }
         div[role="radiogroup"] > label > div:first-child {
             background-color: #003366;  /* Cor azul escuro */
         }
@@ -32,10 +36,6 @@ def main():
         }
         div[role="radiogroup"] > label > div:first-child input:checked ~ div {
             background-color: #003366;  /* Cor azul escuro quando selecionado */
-        }
-        /* Forçar o cursor a ser uma "mãozinha" (pointer) ao passar sobre radio buttons */
-        div[role="radiogroup"] {
-            cursor: pointer;
         }
         </style>
         """, unsafe_allow_html=True)
