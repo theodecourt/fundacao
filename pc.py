@@ -7,7 +7,7 @@ def pagina_principal():
     st.title('Luciano Decourt')
     
     # Carregar e exibir a imagem na página principal
-    st.image("foto_luciano.jpg", caption="Luciano Decourt", width=300)
+    st.image("foto.jpeg", caption="Luciano Decourt", width=300)
     
     st.write("Bem-vindo ao site de Luciano Decourt")
 
