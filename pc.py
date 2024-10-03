@@ -19,6 +19,11 @@ def pagina_artigos():
     st.markdown("<h1 style='color:#003366;'>Luciano Decourt</h1>", unsafe_allow_html=True)
     st.write("Conteúdo de artigos será adicionado aqui.")
 
+# Função para a página "Programas"
+def pagina_programas():
+    st.markdown("<h1 style='color:#003366;'>Programas de Luciano Decourt</h1>", unsafe_allow_html=True)
+    # O conteúdo da página de programas pode ser colocado aqui
+
 # Função principal para a navegação
 def main():
     # Injetando CSS para alterar a cor do radio button
