@@ -1,8 +1,6 @@
 import streamlit as st
 
 def mostrar_curriculo():
-    # Carregar e exibir a imagem no lugar do título
-    st.image("foto.jpeg", caption="Luciano Decourt", width=300)
     
     # Currículo com formatação HTMLs
     return """

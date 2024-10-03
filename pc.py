@@ -41,6 +41,9 @@ def main():
     elif pagina == "Programas":
         pagina_programas()  # Chama a função de programas importada de programas.py
 
+    # Carregar e exibir a imagem no lugar do título
+    st.image("foto.jpeg", caption="Luciano Decourt", width=300)
+
 if __name__ == '__main__':
     main()
 
