@@ -104,7 +104,7 @@ def main():
     
     with col1:
         if st.button('O engenheiro'):
-            st.write(mostrar_curriculo())
+            st.markdown(mostrar_curriculo(), unsafe_allow_html=True)  # Exibe o currículo formatado
     
     with col2:
         if st.button('Obras'):
