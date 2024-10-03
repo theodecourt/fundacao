@@ -1,7 +1,10 @@
 import streamlit as st
 
-# Função para exibir o currículo de Luciano Decourt
 def mostrar_curriculo():
+    # Carregar e exibir a imagem no lugar do título
+    st.image("foto.jpeg", caption="Luciano Decourt", use_column_width=True)
+    
+    # Currículo com formatação HTML
     return """
     <div style="text-align: justify; font-size:16px;">
     <h4>Formação Profissional:</h4>
@@ -45,7 +48,3 @@ def mostrar_curriculo():
     </ul>
     </div>
     """
-
-# Função para exibir a foto de Luciano Decourt
-def exibir_foto():
-    st.image("foto.jpeg", caption="Luciano Decourt", use_column_width=True)
