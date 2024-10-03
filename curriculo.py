@@ -1,8 +1,9 @@
+import streamlit as st
+
+# Função para exibir o currículo de Luciano Decourt
 def mostrar_curriculo():
     return """
     <div style="text-align: justify; font-size:16px;">
-    <h2>Luciano Decourt</h2>
-
     <h4>Formação Profissional:</h4>
     <ul>
         <li>Escola Politécnica da Universidade de São Paulo, POLI, USP (1963)</li>
@@ -44,3 +45,7 @@ def mostrar_curriculo():
     </ul>
     </div>
     """
+
+# Função para exibir a foto de Luciano Decourt
+def exibir_foto():
+    st.image("foto.jpeg", caption="Luciano Decourt", use_column_width=True)
