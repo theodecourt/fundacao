@@ -97,32 +97,54 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
 
 # Função principal para executar o fluxo
 def main():
-    st.title('Luciano Decourt')  # Adiciona o título "Luciano Decourt"
-    
-    # Adiciona os quatro botões no topo
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        if st.button('O engenheiro'):
-            st.markdown(mostrar_curriculo(), unsafe_allow_html=True)  # Exibe o currículo formatado
-    
-    with col2:
-        if st.button('Obras'):
-            st.write("Botão 'Obras' pressionado.")
-    
-    with col3:
-        if st.button('Artigos'):
-            st.write("Botão 'Artigos' pressionado.")
-    
-    with col4:
-        if st.button('Programas'):
-            st.write("Botão 'Programas' pressionado.")
-    
-    st.write("---")  # Adiciona uma linha separadora abaixo dos botões
+    # Adiciona o CSS para ajustar o layout e centralização
+    st.markdown("""
+    <style>
+    .centered {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+    }
+    .stApp {
+        background-color: #f5f5f5;
+        padding: 20px;
+    }
+    .stButton button {
+        margin: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.title('Luciano Decourt')
+
+    # Container centralizado para organizar os botões e o conteúdo
+    with st.container():
+        st.markdown('<div class="centered">', unsafe_allow_html=True)
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            if st.button('O engenheiro'):
+                st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
+        
+        with col2:
+            if st.button('Obras'):
+                st.write("Botão 'Obras' pressionado.")
+        
+        with col3:
+            if st.button('Artigos'):
+                st.write("Botão 'Artigos' pressionado.")
+        
+        with col4:
+            if st.button('Programas'):
+                st.write("Botão 'Programas' pressionado.")
+        
+        st.write("---")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     tabela = carregar_tabela()
     if tabela is not None:
-        
         # Plota os gráficos antes de exibir as opções de regressões
         fig = px.scatter(tabela, x="Carga", y="Recalque")
         fig.update_yaxes(autorange="reversed")
