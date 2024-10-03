@@ -1,86 +1,132 @@
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import numpy as np
+import matplotlib.pyplot as plt
 import math
+from scipy.optimize import fsolve
+from segundo_programa import segundo_programa
 
-# Função para calcular s0
-def calcular_s0(q, Beq, quc, J10, L10):
-    P10 = (math.log10(q / (quc * J10)) - L10) / L10
-    s0 = 10 ** P10 * Beq * 1000
-    return s0
+# Função para carregar a tabela
+def carregar_tabela():
+    uploaded_file = st.file_uploader("Escolha o arquivo CSV", type="csv")
+    if uploaded_file is not None:
+        return pd.read_csv(uploaded_file, delimiter=';')
 
-# Função para ajustar q para s1
-def ajustar_q_para_s1(Q, s1, quc, J10, L10, tolerancia=0.01, max_iter=100):
-    q_min = 0.01
-    q_max = 10 * quc
-    q_new = (q_max + q_min) / 2
-    Beq = math.sqrt(Q / q_new)
+# Função para calcular a interseccao entre duas regressões (Program 1)
+def calcular_interseccao(reg1, reg2, tipo1, tipo2):
+    if tipo1 == 'linear' and tipo2 == 'linear':
+        A = np.array([[reg1[0], -1], [reg2[0], -1]])
+        B = np.array([-reg1[1], -reg2[1]])
+        interseccao = np.linalg.solve(A, B)
+    elif tipo1 == 'log' and tipo2 == 'log':
+        A = np.array([[reg1[0], -1], [reg2[0], -1]])
+        B = np.array([-reg1[1], -reg2[1]])
+        interseccao_log = np.linalg.solve(A, B)
+        interseccao = 10**interseccao_log
+    elif tipo1 == 'linear' and tipo2 == 'log':
+        def func_intersec(x):
+            return reg1[0] * x + reg1[1] - 10**(reg2[0] * np.log10(x) + reg2[1])
+        interseccao_carga = fsolve(func_intersec, x0=1)
+        interseccao_rigidez = reg1[0] * interseccao_carga + reg1[1]
+        interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
+    elif tipo1 == 'log' and tipo2 == 'linear':
+        def func_intersec(x):
+            return 10**(reg1[0] * np.log10(x) + reg1[1]) - reg2[0] * x - reg2[1]
+        interseccao_carga = fsolve(func_intersec, x0=1)
+        interseccao_rigidez = reg2[0] * interseccao_carga + reg2[1]
+        interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
+    return interseccao
 
-    for _ in range(max_iter):
-        s0 = calcular_s0(q_new, Beq, quc, J10, L10)
-        if abs(s0 - s1) < tolerancia:
-            return q_new
-        if s0 < s1:
-            q_min = q_new
-        else:
-            q_max = q_new
-        q_new = (q_max + q_min) / 2
-        Beq = math.sqrt(Q / q_new)
+# Função para calcular a regressão e plotar os gráficos (Program 1)
+def calcular_regressao(tabela, num_regressoes, pontos_tipos):
+    x0 = tabela['Carga']
+    y0 = tabela['rigidez']
+    
+    colors = ['b', 'red', 'green']
+    plt.plot(x0, y0, 'go', label='Dados Originais')
+    
+    regressions = []
+    tipos = []
+    
+    for i in range(num_regressoes):
+        lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
+        linear = tabela[lin_in-1:lin_fim]
+        if tipo_regressao == 'linear':
+            reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
+            predict = np.poly1d(reg)
+            x = np.linspace(0, tabela['Carga'].max(), 100)
+            y = predict(x)
+            corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
+            equacao = f'rigidez = {reg[0]:.4f} * Carga + {reg[1]:.4f}'
+        else:  # log
+            reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
+            predict = np.poly1d(reg)
+            x = np.linspace(0, tabela['Carga'].max(), 100)
+            y = 10**predict(np.log10(x))
+            corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
+            equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
+        
+        corr = corr_matrix[0, 1]
+        R_sq = corr**2
 
-    return q_new
+        plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
+        
+        regressions.append(reg)
+        tipos.append(tipo_regressao)
+        
+        st.write(f'Pontos utilizados na regressão {i+1}: ', lin_in, ' até ', lin_fim)
+        st.write('Tipo de regressão: ', tipo_regressao.capitalize())
+        st.write('Equação da regressão: ', equacao)
+        st.write('R2: ', R_sq)
+    
+    # Calcular e mostrar pontos de interseccao entre todas as combinações possíveis
+    for i in range(num_regressoes):
+        for j in range(i + 1, num_regressoes):
+            interseccao = calcular_interseccao(regressions[i], regressions[j], tipos[i], tipos[j])
+            plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseccao com um 'x' vermelho
+            st.write(f'Interseccao entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
+    
+    plt.xlabel('Carga')
+    plt.ylabel('Rigidez')
+    plt.title('Regressão de Carga x Rigidez')
+    plt.legend().set_visible(False)
+    st.pyplot(plt)
 
-# Função para calcular os valores iniciais
-def calcular_valores(Q, NSPT, tipo_solo):
-    if tipo_solo == 1:
-        quc = 12 * NSPT
-    elif tipo_solo == 2:
-        quc = 10 * NSPT
-    else:
-        quc = 8 * NSPT
+# Função para a página "Programas"
+def pagina_programas():
+    st.title('Programas de Luciano Decourt')
 
-    q = quc * 0.4
-    Beq = math.sqrt(Q / q)
-    area = Beq ** 2
-    s0 = calcular_s0(q, Beq, quc, 1, 0.42)
+    programa_selecionado = st.selectbox('Selecione o programa:', ['Programa 1', 'Programa 2'])
 
-    return quc, q, Beq, area, s0
+    if programa_selecionado == 'Programa 1':
+        tabela = carregar_tabela()
+        if tabela is not None:
+            # Plota os gráficos antes de exibir as opções de regressões
+            fig = px.scatter(tabela, x="Carga", y="Recalque")
+            fig.update_yaxes(autorange="reversed")
+            st.plotly_chart(fig)
 
-# Função principal do segundo programa para ser exibido no Streamlit
-def segundo_programa():
-    st.title("Segundo Programa - Cálculos Geotécnicos")
+            tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
+            fig2 = px.scatter(tabela, x="Carga", y="rigidez")
+            st.plotly_chart(fig2)
 
-    # Solicita os dados de entrada do usuário
-    Q = st.number_input("Digite o valor de Q (tf):", min_value=0.0, value=100.0, key="Q")
-    NSPT = st.number_input("Digite o valor de NSPT:", min_value=0.0, value=10.0, key="NSPT")
-    tipo_solo = st.selectbox("Digite o tipo de solo (1, 2 ou 3):", [1, 2, 3], key="tipo_solo")
-
-    # Inicializa os valores na session_state se ainda não estiverem salvos
-    if "quc" not in st.session_state:
-        if st.button("Calcular valores iniciais"):
-            quc, q, Beq, area, s0 = calcular_valores(Q, NSPT, tipo_solo)
-            # Salva os valores no session_state
-            st.session_state["quc"] = quc
-            st.session_state["q"] = q
-            st.session_state["Beq"] = Beq
-            st.session_state["area"] = area
-            st.session_state["s0"] = s0
-
-    if "quc" in st.session_state:
-        # Exibe os resultados salvos
-        st.write(f"quc (tf/m²): {st.session_state['quc']}")
-        st.write(f"q (tf/m²): {st.session_state['q']}")
-        st.write(f"Beq (m): {st.session_state['Beq']}")
-        st.write(f"Área inicial (m²): {st.session_state['area']}")
-        st.write(f"s0 inicial (mm): {st.session_state['s0']}")
-
-        # Solicita o valor de s1 (mm)
-        s1 = st.number_input("Digite o valor de s1 (mm):", min_value=0.0, value=10.0)
-
-        if st.button("Ajustar q para s1"):
-            # Calcula o novo q que resultaria em s0 = s1
-            q_new = ajustar_q_para_s1(Q, s1, st.session_state["quc"], 1, 0.42)
-            Beq_new = math.sqrt(Q / q_new)
-            area_new = Beq_new ** 2
-
-            # Exibe o resultado do novo q, Beq e área
-            st.write(f"Novo q (tf/m²) para s0 = s1: {q_new}")
-            st.write(f"Novo Beq (m) com q ajustado: {Beq_new}")
-            st.write(f"Nova Área (m²) com Beq ajustado: {area_new}")
+            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
+            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
+            tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
+            
+            # Escolha o número de regressões
+            num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
+            
+            pontos_tipos = []
+            for i in range(num_regressoes):
+                lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1)
+                lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela))
+                tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
+                pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+            
+            if st.button('Calcular Regressões'):
+                calcular_regressao(tabela, num_regressoes, pontos_tipos)
+    
+    elif programa_selecionado == 'Programa 2':
+        segundo_programa()  # Chama o segundo programa importado de segundo_programa.py
