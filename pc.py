@@ -30,20 +30,45 @@ def pagina_artigos():
 def main():
     st.sidebar.title("Navegação")
 
-    # Exibe todas as opções como botões no menu lateral
-    if st.sidebar.button("Página Principal"):
+    # Adiciona um estilo CSS para manter todos os botões do mesmo tamanho
+    st.sidebar.markdown(
+        """
+        <style>
+        .button-style {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #008CBA;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button-style:hover {
+            background-color: #005f6b;
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
+
+    # Cria links estilizados como botões
+    if st.sidebar.markdown('<a href="#" class="button-style">Página Principal</a>', unsafe_allow_html=True):
         pagina_principal()
 
-    if st.sidebar.button("O engenheiro"):
+    if st.sidebar.markdown('<a href="#" class="button-style">O engenheiro</a>', unsafe_allow_html=True):
         pagina_engenheiro()
 
-    if st.sidebar.button("Obras"):
+    if st.sidebar.markdown('<a href="#" class="button-style">Obras</a>', unsafe_allow_html=True):
         pagina_obras()
 
-    if st.sidebar.button("Artigos"):
+    if st.sidebar.markdown('<a href="#" class="button-style">Artigos</a>', unsafe_allow_html=True):
         pagina_artigos()
 
-    if st.sidebar.button("Programas"):
+    if st.sidebar.markdown('<a href="#" class="button-style">Programas</a>', unsafe_allow_html=True):
         pagina_programas()
 
 if __name__ == '__main__':
