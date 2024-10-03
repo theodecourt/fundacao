@@ -7,7 +7,7 @@ def pagina_principal():
     st.title('Luciano Decourt')
     
     st.write("Bem-vindo ao site de Luciano Decourt")
-    
+
     # Carregar e exibir a imagem na página principal
     st.image("foto.jpeg", caption="Luciano Decourt", width=300)
     
@@ -27,24 +27,24 @@ def pagina_artigos():
     st.title('Artigos de Luciano Decourt')
     st.write("Conteúdo de artigos será adicionado aqui.")
 
-# Função principal para a navegação
 def main():
     st.sidebar.title("Navegação")
-    pagina = st.sidebar.selectbox(
-        "Selecione a página:",
-        ["Página Principal", "O engenheiro", "Obras", "Artigos", "Programas"]
-    )
 
-    if pagina == "Página Principal":
-        pagina_principal()  # Chama a função da página principal
-    elif pagina == "O engenheiro":
+    # Exibe todas as opções como botões no menu lateral
+    if st.sidebar.button("Página Principal"):
+        pagina_principal()
+
+    if st.sidebar.button("O engenheiro"):
         pagina_engenheiro()
-    elif pagina == "Obras":
+
+    if st.sidebar.button("Obras"):
         pagina_obras()
-    elif pagina == "Artigos":
+
+    if st.sidebar.button("Artigos"):
         pagina_artigos()
-    elif pagina == "Programas":
-        pagina_programas()  # Chama a função de programas importada de programas.py
+
+    if st.sidebar.button("Programas"):
+        pagina_programas()
 
 if __name__ == '__main__':
     main()
