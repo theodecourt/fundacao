@@ -25,8 +25,8 @@ def main():
     st.markdown("""
         <style>
         /* Mudar cursor do selectbox para pointer (mãozinha) */
-        select {
-            cursor: pointer;
+        .stSelectbox > div > div:first-child {
+            cursor: pointer !important;
         }
         div[role="radiogroup"] > label > div:first-child {
             background-color: #003366;  /* Cor azul escuro */
