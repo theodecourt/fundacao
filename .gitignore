@@ -1,0 +1,46 @@
+# Ignorar o ambiente virtual
+env/
+venv/
+ENV/
+.VENV/
+.venv/
+
+# Ignorar arquivos de cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignorar logs
+*.log
+
+# Ignorar arquivos de configuração de IDEs
+.vscode/
+.idea/
+
+# Ignorar configurações específicas de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Ignorar arquivos do Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignorar arquivos de banco de dados SQLite
+*.sqlite3
+
+# Ignorar arquivos de configuração de sistema de controle de versões
+*.swp
+*.swo
+*.bak
+
+# Ignorar arquivos criados pelo pip
+pip-log.txt
+
+# Ignorar envs do Streamlit
+.streamlit/
+
+# Ignorar arquivos de histórico de shell (opcional)
+.history
+
+# Ignorar arquivos de configuração de depuração e perfis
+*.prof
+*.profraw

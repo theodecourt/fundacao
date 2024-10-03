@@ -94,7 +94,30 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
 
 # Função principal para executar o fluxo
 def main():
-    st.title('Análise de Regressão')
+    st.title('Luciano Decourt')  # Adiciona o título "Luciano Decourt"
+    
+    # Adiciona os quatro botões no topo
+    st.write("### Menu")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button('O engenheiro'):
+            st.write("Botão 'O engenheiro' pressionado.")
+            
+    with col2:
+        if st.button('Obras'):
+            st.write("Botão 'Obras' pressionado.")
+    
+    with col3:
+        if st.button('Artigos'):
+            st.write("Botão 'Artigos' pressionado.")
+    
+    with col4:
+        if st.button('Programas'):
+            st.write("Botão 'Programas' pressionado.")
+    
+    st.write("---")  # Adiciona uma linha separadora abaixo dos botões
+    
     tabela = carregar_tabela()
     if tabela is not None:
         
