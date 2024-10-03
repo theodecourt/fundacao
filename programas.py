@@ -12,7 +12,7 @@ def carregar_tabela():
     if uploaded_file is not None:
         return pd.read_csv(uploaded_file, delimiter=';')
 
-# Função para calcular a interseccao entre duas regressões
+# Função para calcular a interseccao entre duas regressões (Program 1)
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
@@ -37,7 +37,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     return interseccao
 
-# Função para calcular a regressão e plotar os gráficos
+# Função para calcular a regressão e plotar os gráficos (Program 1)
 def calcular_regressao(tabela, num_regressoes, pontos_tipos):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
@@ -92,34 +92,45 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
     plt.legend().set_visible(False)
     st.pyplot(plt)
 
+# Função para o segundo programa (a ser implementado)
+def segundo_programa():
+    st.write("Aqui ficará o segundo programa. Em breve será implementado.")
+    # Coloque o conteúdo do segundo programa quando ele estiver pronto.
+
 # Função para a página "Programas"
 def pagina_programas():
     st.title('Programas de Luciano Decourt')
 
-    tabela = carregar_tabela()
-    if tabela is not None:
-        # Plota os gráficos antes de exibir as opções de regressões
-        fig = px.scatter(tabela, x="Carga", y="Recalque")
-        fig.update_yaxes(autorange="reversed")
-        st.plotly_chart(fig)
+    programa_selecionado = st.selectbox('Selecione o programa:', ['Programa 1', 'Programa 2'])
 
-        tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
-        fig2 = px.scatter(tabela, x="Carga", y="rigidez")
-        st.plotly_chart(fig2)
+    if programa_selecionado == 'Programa 1':
+        tabela = carregar_tabela()
+        if tabela is not None:
+            # Plota os gráficos antes de exibir as opções de regressões
+            fig = px.scatter(tabela, x="Carga", y="Recalque")
+            fig.update_yaxes(autorange="reversed")
+            st.plotly_chart(fig)
 
-        tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
-        tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
-        tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
-        
-        # Escolha o número de regressões
-        num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
-        
-        pontos_tipos = []
-        for i in range(num_regressoes):
-            lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1)
-            lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela))
-            tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
-            pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
-        
-        if st.button('Calcular Regressões'):
-            calcular_regressao(tabela, num_regressoes, pontos_tipos)
+            tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
+            fig2 = px.scatter(tabela, x="Carga", y="rigidez")
+            st.plotly_chart(fig2)
+
+            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
+            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
+            tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
+            
+            # Escolha o número de regressões
+            num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
+            
+            pontos_tipos = []
+            for i in range(num_regressoes):
+                lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1)
+                lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela))
+                tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
+                pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+            
+            if st.button('Calcular Regressões'):
+                calcular_regressao(tabela, num_regressoes, pontos_tipos)
+    
+    elif programa_selecionado == 'Programa 2':
+        segundo_programa()  # Chama o segundo programa, que será implementado posteriormente.

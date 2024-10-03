@@ -6,10 +6,11 @@ from programas import pagina_programas  # Importa a função da página Programa
 def pagina_principal():
     st.title('Luciano Decourt')
     
+    st.write("Bem-vindo ao site de Luciano Decourt")
+    
     # Carregar e exibir a imagem na página principal
     st.image("foto.jpeg", caption="Luciano Decourt", width=300)
     
-    st.write("Bem-vindo ao site de Luciano Decourt")
 
 # Função para a página "O engenheiro"
 def pagina_engenheiro():
