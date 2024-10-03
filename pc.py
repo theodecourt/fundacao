@@ -94,30 +94,39 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
 
 # Função principal para executar o fluxo
 def main():
-    st.title('Luciano Decourt')  # Adiciona o título "Luciano Decourt"
-    
-    # Adiciona os quatro botões no topo
-    st.write("### Menu")
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        if st.button('O engenheiro'):
-            st.write("Botão 'O engenheiro' pressionado.")
-            
-    with col2:
-        if st.button('Obras'):
-            st.write("Botão 'Obras' pressionado.")
-    
-    with col3:
-        if st.button('Artigos'):
-            st.write("Botão 'Artigos' pressionado.")
-    
-    with col4:
-        if st.button('Programas'):
-            st.write("Botão 'Programas' pressionado.")
-    
-    st.write("---")  # Adiciona uma linha separadora abaixo dos botões
-    
+    # Título do site com o nome "Luciano Decourt"
+    st.title('Luciano Decourt - Engenharia')
+
+    # Adiciona os botões com o estilo azul escuro e letras brancas
+    st.markdown("""
+    <style>
+    .stButton button {
+        background-color: #003366;
+        color: white;
+        width: 100%;
+        height: 40px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Botões no menu
+    if st.button('O engenheiro'):
+        st.write("Botão O engenheiro pressionado.")
+
+    if st.button('Obras'):
+        st.write("Botão Obras pressionado.")
+
+    if st.button('Artigos'):
+        st.write("Botão Artigos pressionado.")
+
+    if st.button('Programas'):
+        st.write("Botão Programas pressionado.")
+
+    # Carregar a tabela
     tabela = carregar_tabela()
     if tabela is not None:
         
