@@ -9,7 +9,7 @@ def pagina_principal():
 
 # Função para a página "O engenheiro"
 def pagina_engenheiro():
-    exibir_foto()  # Exibe a foto de Luciano Decourt
+    st.title('Luciano Decourt')
     st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
 
 # Função para a página "Obras"
