@@ -1,5 +1,5 @@
 import streamlit as st
-from curriculo import mostrar_curriculo, exibir_foto  # Importa a função para exibir a foto
+from curriculo import mostrar_curriculo  # Importa a função para exibir a foto
 from programas import pagina_programas  # Importa a função da página Programas
 
 # Função principal para a página
