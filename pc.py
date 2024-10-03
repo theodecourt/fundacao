@@ -21,6 +21,21 @@ def pagina_artigos():
 
 # Função principal para a navegação
 def main():
+    # Injetando CSS para alterar a cor do radio button
+    st.markdown("""
+        <style>
+        div[role="radiogroup"] > label > div:first-child {
+            background-color: #003366;  /* Cor azul escuro */
+        }
+        div[role="radiogroup"] > label > div:first-child:hover {
+            background-color: #002244;  /* Azul escuro mais forte ao passar o mouse */
+        }
+        div[role="radiogroup"] > label > div:first-child input:checked ~ div {
+            background-color: #003366;  /* Cor azul escuro quando selecionado */
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
     st.sidebar.title("Navegação")
 
     # Exibe o título de seleção com tamanho maior usando HTML
