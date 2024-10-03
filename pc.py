@@ -23,17 +23,19 @@ def pagina_artigos():
 def main():
     st.sidebar.title("Navegação")
 
-    st.sidebar.title("Selecione a página:")
+    # Exibe o título de seleção com tamanho maior usando HTML
+    st.sidebar.markdown("<h2 style='font-size: 24px;'>Selecione a página:</h2>", unsafe_allow_html=True)
 
     # Exibe as opções de navegação como Radio Button
     pagina = st.sidebar.radio(
+        "",  # O label vazio, pois já colocamos o título personalizado acima
         ["Página Principal", "O Engenheiro", "Obras", "Artigos", "Programas"]
     )
 
     # Exibe a página correspondente
     if pagina == "Página Principal":
         pagina_principal()
-    elif pagina == "O engenheiro":
+    elif pagina == "O Engenheiro":
         pagina_engenheiro()
     elif pagina == "Obras":
         pagina_obras()
