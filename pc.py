@@ -43,6 +43,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
     y0 = tabela['rigidez']
     
     colors = ['b', 'red', 'green']
+    plt.figure(figsize=(10, 6))
     plt.plot(x0, y0, 'go', label='Dados Originais')
     
     regressions = []
@@ -54,14 +55,14 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
         if tipo_regressao == 'linear':
             reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
             predict = np.poly1d(reg)
-            x = np.linspace(0, tabela['Carga'].max(), 100)
+            x = np.linspace(linear['Carga'].min(), tabela['Carga'].max(), 100)
             y = predict(x)
             corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
             equacao = f'rigidez = {reg[0]:.4f} * Carga + {reg[1]:.4f}'
         else:  # log
             reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
             predict = np.poly1d(reg)
-            x = np.linspace(0, tabela['Carga'].max(), 100)
+            x = np.linspace(linear['Carga'].min(), tabela['Carga'].max(), 100)
             y = 10**predict(np.log10(x))
             corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
             equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
@@ -74,59 +75,93 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
         regressions.append(reg)
         tipos.append(tipo_regressao)
         
-        st.write(f'Pontos utilizados na regressão {i+1}: ', lin_in, ' até ', lin_fim)
-        st.write('Tipo de regressão: ', tipo_regressao.capitalize())
-        st.write('Equação da regressão: ', equacao)
-        st.write('R2: ', R_sq)
+        st.write(f'### Regressão {i+1}')
+        st.write(f'**Pontos utilizados:** {lin_in} até {lin_fim}')
+        st.write(f'**Tipo de regressão:** {tipo_regressao.capitalize()}')
+        st.write(f'**Equação da regressão:** {equacao}')
+        st.write(f'**R²:** {R_sq:.4f}')
     
     # Calcular e mostrar pontos de interseção entre todas as combinações possíveis
     for i in range(num_regressoes):
         for j in range(i + 1, num_regressoes):
             interseccao = calcular_interseccao(regressions[i], regressions[j], tipos[i], tipos[j])
             plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
-            st.write(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
+            st.write(f'**Interseção entre Regressão {i+1} e Regressão {j+1}:**')
+            st.write(f'Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
     
     plt.xlabel('Carga')
     plt.ylabel('Rigidez')
     plt.title('Regressão de Carga x Rigidez')
-    plt.legend().set_visible(False)
+    plt.legend()
     st.pyplot(plt)
 
 # Função principal para executar o fluxo
 def main():
-    # Título do site com o nome "Luciano Decourt"
-    st.title('Luciano Decourt - Engenharia')
-
-    # Adiciona os botões com o estilo azul escuro e letras brancas
+    # Adiciona o título "Luciano Decourt - Engenharia"
+    st.markdown("""
+    <h1 style='text-align: center; color: #003366;'>Luciano Decourt - Engenharia</h1>
+    """, unsafe_allow_html=True)
+    
+    # Adiciona os quatro botões no topo com estilo personalizado
     st.markdown("""
     <style>
-    .stButton button {
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .custom-button {
         background-color: #003366;
         color: white;
-        width: 100%;
-        height: 40px;
+        padding: 10px 20px;
         border: none;
         border-radius: 5px;
         font-size: 16px;
-        margin-bottom: 10px;
+        cursor: pointer;
+        text-align: center;
+    }
+    .custom-button:hover {
+        background-color: #002244;
     }
     </style>
     """, unsafe_allow_html=True)
-
-    # Botões no menu
-    if st.button('O engenheiro'):
-        st.write("Botão O engenheiro pressionado.")
-
-    if st.button('Obras'):
-        st.write("Botão Obras pressionado.")
-
-    if st.button('Artigos'):
-        st.write("Botão Artigos pressionado.")
-
-    if st.button('Programas'):
-        st.write("Botão Programas pressionado.")
-
-    # Carregar a tabela
+    
+    st.markdown('<div class="button-container">', unsafe_allow_html=True)
+    
+    # Função para criar um botão com estilo personalizado
+    def styled_button(label):
+        return st.markdown(f'<button class="custom-button">{label}</button>', unsafe_allow_html=True)
+    
+    # Botões estilizados (por enquanto, sem funcionalidade)
+    st.markdown('<button class="custom-button">O engenheiro</button>', unsafe_allow_html=True)
+    st.markdown('<button class="custom-button">Obras</button>', unsafe_allow_html=True)
+    st.markdown('<button class="custom-button">Artigos</button>', unsafe_allow_html=True)
+    st.markdown('<button class="custom-button">Programas</button>', unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Opcional: Manter a funcionalidade dos botões para feedback
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button('O engenheiro'):
+            st.write("Botão 'O engenheiro' pressionado.")
+            
+    with col2:
+        if st.button('Obras'):
+            st.write("Botão 'Obras' pressionado.")
+    
+    with col3:
+        if st.button('Artigos'):
+            st.write("Botão 'Artigos' pressionado.")
+    
+    with col4:
+        if st.button('Programas'):
+            st.write("Botão 'Programas' pressionado.")
+    
+    st.write("---")  # Adiciona uma linha separadora abaixo dos botões
+    
     tabela = carregar_tabela()
     if tabela is not None:
         
@@ -148,9 +183,10 @@ def main():
         
         pontos_tipos = []
         for i in range(num_regressoes):
-            lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1)
-            lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela))
-            tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
+            st.write(f'### Regressão {i+1}')
+            lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, value=1, key=f'lin_in_{i}')
+            lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, value=len(tabela), key=f'lin_fim_{i}')
+            tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0, key=f'tipo_regressao_{i}')
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
         
         if st.button('Calcular Regressões'):
