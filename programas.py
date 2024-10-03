@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import fsolve
+from segundo_programa import segundo_programa
 
 # Função para carregar a tabela
 def carregar_tabela():
@@ -92,11 +93,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos):
     plt.legend().set_visible(False)
     st.pyplot(plt)
 
-# Função para o segundo programa (a ser implementado)
-def segundo_programa():
-    st.write("Aqui ficará o segundo programa. Em breve será implementado.")
-    # Coloque o conteúdo do segundo programa quando ele estiver pronto.
-
 # Função para a página "Programas"
 def pagina_programas():
     st.title('Programas de Luciano Decourt')
@@ -133,4 +129,4 @@ def pagina_programas():
                 calcular_regressao(tabela, num_regressoes, pontos_tipos)
     
     elif programa_selecionado == 'Programa 2':
-        segundo_programa()  # Chama o segundo programa, que será implementado posteriormente.
+        segundo_programa()  # Chama o segundo programa importado de segundo_programa.py
