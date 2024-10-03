@@ -5,8 +5,12 @@ from programas import pagina_programas  # Importa a função da página Programa
 # Função principal para a página
 def pagina_principal():
     st.title('Luciano Decourt')
+    
     st.write("Bem-vindo ao site de Luciano Decourt")
+    
+    # Carregar e exibir a imagem na página principal
     st.image("foto.jpeg", caption="Luciano Decourt", width=300)
+    
 
 # Função para a página "O engenheiro"
 def pagina_engenheiro():
@@ -26,37 +30,21 @@ def pagina_artigos():
 # Função principal para a navegação
 def main():
     st.sidebar.title("Navegação")
-    
-    # Definir um estado inicial para a página
-    pagina_selecionada = "Página Principal"
+    pagina = st.sidebar.selectbox(
+        "Selecione a página:",
+        ["Página Principal", "O engenheiro", "Obras", "Artigos", "Programas"]
+    )
 
-    # Exibe todas as opções como botões no menu lateral
-    if st.sidebar.button("Página Principal"):
-        pagina_selecionada = "Página Principal"
-    
-    if st.sidebar.button("O engenheiro"):
-        pagina_selecionada = "O engenheiro"
-    
-    if st.sidebar.button("Obras"):
-        pagina_selecionada = "Obras"
-    
-    if st.sidebar.button("Artigos"):
-        pagina_selecionada = "Artigos"
-    
-    if st.sidebar.button("Programas"):
-        pagina_selecionada = "Programas"
-
-    # Exibe a página selecionada
-    if pagina_selecionada == "Página Principal":
-        pagina_principal()
-    elif pagina_selecionada == "O engenheiro":
+    if pagina == "Página Principal":
+        pagina_principal()  # Chama a função da página principal
+    elif pagina == "O engenheiro":
         pagina_engenheiro()
-    elif pagina_selecionada == "Obras":
+    elif pagina == "Obras":
         pagina_obras()
-    elif pagina_selecionada == "Artigos":
+    elif pagina == "Artigos":
         pagina_artigos()
-    elif pagina_selecionada == "Programas":
-        pagina_programas()
+    elif pagina == "Programas":
+        pagina_programas()  # Chama a função de programas importada de programas.py
 
 if __name__ == '__main__':
     main()
