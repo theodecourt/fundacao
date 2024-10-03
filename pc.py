@@ -4,25 +4,20 @@ from programas import pagina_programas
 
 # Função principal para a página
 def pagina_principal():
-    st.markdown("<h1 style='color:#003366;'>Luciano Decourt</h1>", unsafe_allow_html=True)
+    st.title('Luciano Decourt')
     st.image("foto.jpeg", caption="Luciano Decourt", width=300)
 
 def pagina_engenheiro():
-    st.markdown("<h1 style='color:#003366;'>Luciano Decourt</h1>", unsafe_allow_html=True)
+    st.title('Luciano Decourt')
     st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
 
 def pagina_obras():
-    st.markdown("<h1 style='color:#003366;'>Luciano Decourt</h1>", unsafe_allow_html=True)
+    st.title('Obras de Luciano Decourt')
     st.write("Conteúdo de obras será adicionado aqui.")
 
 def pagina_artigos():
-    st.markdown("<h1 style='color:#003366;'>Luciano Decourt</h1>", unsafe_allow_html=True)
+    st.title('Artigos de Luciano Decourt')
     st.write("Conteúdo de artigos será adicionado aqui.")
-
-# Função para a página "Programas"
-def pagina_programas():
-    st.markdown("<h1 style='color:#003366;'>Programas de Luciano Decourt</h1>", unsafe_allow_html=True)
-    # O conteúdo da página de programas pode ser colocado aqui
 
 # Função principal para a navegação
 def main():
