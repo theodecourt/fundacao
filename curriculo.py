@@ -1,7 +1,7 @@
 def mostrar_curriculo():
     return """
     <div style="text-align: justify; font-size:16px;">
-    <h2>Luciano Decourt</h2>
+    <img src="foto.jpeg" alt="foto Luciano Decourt" width="500" height="300">
 
     <h4>Formação Profissional:</h4>
     <ul>
