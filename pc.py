@@ -15,8 +15,8 @@ textos = {
         "artigos": "Artigos",
         "programas": "Programas",
         "videos": "Vídeos",
-        "titulo_principal": "Luciano Decourt",
-        "bem_vindo": "Bem-vindo ao site de Luciano Decourt",
+        "titulo_principal": "Luciano Décourt",
+        "bem_vindo": "Bem-vindo ao site de Luciano Décourt",
         "citações" : "Citações"
     },
     "en": {
@@ -27,8 +27,8 @@ textos = {
         "artigos": "Articles",
         "programas": "Programs",
         "videos": "Videos",
-        "titulo_principal": "Luciano Decourt",
-        "bem_vindo": "Welcome to Luciano Decourt's website",
+        "titulo_principal": "Luciano Décourt",
+        "bem_vindo": "Welcome to Luciano Décourt's website",
         "citações" : "Citations"
     }
 }
@@ -36,7 +36,7 @@ textos = {
 # Função principal para a página
 def pagina_principal(texto):
     st.title(texto["titulo_principal"])
-    st.image("foto.jpeg", caption="Luciano Decourt", width=300)
+    st.image("foto.jpeg", caption="Luciano Décourt", width=300)
     st.write(texto["bem_vindo"])
 
 def pagina_engenheiro(texto):

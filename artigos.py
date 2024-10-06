@@ -2,7 +2,7 @@ import streamlit as st
 
 def pagina_artigos():
     # Criação da página de artigos
-    st.title('Artigos de Luciano Decourt')
+    st.title('Artigos de Luciano Décourt')
 
     artigos_html = """
     <style>
