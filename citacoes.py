@@ -2,6 +2,16 @@ import streamlit as st
 
 # Função para mostrar a página de citações
 def pagina_citacoes():
+    # Texto introdutório sobre Luciano Decourt
+    st.markdown("""
+    <div style="text-align: justify; font-size:16px;">
+    <p><strong>O Professor Luciano Decourt</strong> é amplamente reconhecido por suas contribuições significativas na área de engenharia geotécnica e fundações. 
+    Ao longo de sua carreira, ele tem sido uma referência para pesquisadores e profissionais, acumulando mais de 500 citações em trabalhos acadêmicos e técnicos. 
+    Seu trabalho inovador e profundo conhecimento têm influenciado o desenvolvimento de metodologias e práticas na engenharia de fundações, destacando-se pela aplicação prática e teórica em projetos de grande escala.</p>
+    <p>A seguir, apresentamos algumas das citações que refletem a relevância e o impacto de suas pesquisas no campo:</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     # Código HTML contendo as citações
     citacoes_html = """
     <!DOCTYPE html>
@@ -83,5 +93,3 @@ def pagina_citacoes():
     """
     # Renderizar o HTML no Streamlit
     st.markdown(citacoes_html, unsafe_allow_html=True)
-
-# Adicionar esta página na navegação do seu aplicativo
