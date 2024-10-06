@@ -29,7 +29,7 @@ textos = {
         "videos": "Videos",
         "titulo_principal": "Luciano Decourt",
         "bem_vindo": "Welcome to Luciano Decourt's website",
-        "citações" : "citations"
+        "citações" : "Citations"
     }
 }
 

@@ -40,6 +40,18 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     return interseccao
 
+# Função para calcular o Quc
+def calcular_quc(reg, tipo_regressao, recalque_critico):
+    if tipo_regressao == 'linear':
+        a = reg[1]
+        b = reg[0]
+        quc = a / ((1 / recalque_critico) - b)
+    else:  # log
+        def func_quc_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque_critico)
+        quc = fsolve(func_quc_log, x0=1)[0]
+    return quc
+
 # Função para calcular a regressão e plotar os gráficos
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
     x0 = tabela['Carga']
@@ -51,6 +63,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
     regressions = []
     tipos = []
     
+    recalque_critico = 0.1 * diametro_estaca  # Cálculo do recalque crítico
+
     for i in range(num_regressoes):
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
         linear = tabela[lin_in-1:lin_fim]
@@ -72,12 +86,16 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
         corr = corr_matrix[0, 1]
         R_sq = corr**2
 
+        # Calcular o Quc
+        quc = calcular_quc(reg, tipo_regressao, recalque_critico)
+
         plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
         
         st.write(f'Pontos utilizados na regressão {i+1}: {lin_in} até {lin_fim}')
         st.write('Tipo de regressão:', tipo_regressao.capitalize())
         st.write('Equação da regressão:', equacao)
         st.write('R²:', R_sq)
+        st.write(f'Quc para a regressão {i+1}: {quc:.4f} tf')
 
         # Adiciona a regressão e o tipo de regressão à lista
         regressions.append(reg)
