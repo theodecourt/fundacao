@@ -7,7 +7,7 @@ def pagina_programas():
     st.title('Programas de Luciano Décourt')
 
     # Selectbox para selecionar qual programa será executado
-    programa_selecionado = st.selectbox('Selecione o programa:', ['Interpretação de Provas de Carga', 'REC-0 (ZDM)'])
+    programa_selecionado = st.selectbox('Selecione o programa:', ['Interpretação de Provas de Carga', 'REC-0 (ZDSM)'])
 
     # Chama o primeiro programa
     if programa_selecionado == 'Interpretação de Provas de Carga':
