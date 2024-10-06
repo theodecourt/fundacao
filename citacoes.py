@@ -44,7 +44,6 @@ def pagina_citacoes():
         </style>
     </head>
     <body>
-        <h1>Artigos Relacionados a Fundações</h1>
         <ul>
             <li>
                 <strong>Poulos, H. G. (2016).</strong> Tall building foundations: design methods and applications. Innovative Infrastructure Solutions, 1, 1-51.<br>
