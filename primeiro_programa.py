@@ -78,13 +78,20 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
         st.write('Tipo de regressão:', tipo_regressao.capitalize())
         st.write('Equação da regressão:', equacao)
         st.write('R²:', R_sq)
-    
-    # Calcular e mostrar pontos de interseção entre todas as combinações possíveis
-    for i in range(num_regressoes):
-        for j in range(i + 1, num_regressoes):
-            interseccao = calcular_interseccao(regressions[i], regressions[j], tipos[i], tipos[j])
-            plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
-            st.write(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
+
+        # Adiciona a regressão e o tipo de regressão à lista
+        regressions.append(reg)
+        tipos.append(tipo_regressao)
+
+    # Verificar se há pelo menos duas regressões para calcular a interseção
+    if len(regressions) >= 2:
+        # Calcular e mostrar pontos de interseção entre todas as combinações possíveis
+        for i in range(num_regressoes):
+            for j in range(i + 1, num_regressoes):
+                if i < len(regressions) and j < len(regressions):
+                    interseccao = calcular_interseccao(regressions[i], regressions[j], tipos[i], tipos[j])
+                    plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
+                    st.write(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
     
     plt.xlabel('Carga')
     plt.ylabel('Rigidez')
