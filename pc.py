@@ -2,6 +2,7 @@ import streamlit as st
 from curriculo import mostrar_curriculo
 from programas import pagina_programas
 from artigos import pagina_artigos
+from videos import pagina_videos
 
 # Função principal para a página
 def pagina_principal():
@@ -63,6 +64,8 @@ def main():
         pagina_artigos()
     elif pagina == "Programas":
         pagina_programas()
+    elif pagina == "Vídeos":
+        pagina_videos()
 
 if __name__ == '__main__':
     main()
