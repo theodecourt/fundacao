@@ -3,6 +3,7 @@ from curriculo import mostrar_curriculo
 from programas import pagina_programas
 from artigos import pagina_artigos
 from videos import pagina_videos
+from artigos import pagina_artigos
 
 # Função principal para a página
 def pagina_principal():
