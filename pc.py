@@ -18,10 +18,6 @@ def pagina_obras():
     st.title('Obras de Luciano Decourt')
     st.write("Conteúdo de obras será adicionado aqui.")
 
-def pagina_artigos():
-    st.title('Artigos de Luciano Decourt')
-    st.write("Conteúdo de artigos será adicionado aqui.")
-
 # Função principal para a navegação
 def main():
     # Injetando CSS para alterar a cor do selectbox e o cursor
