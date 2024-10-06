@@ -3,6 +3,7 @@ from curriculo import mostrar_curriculo
 from programas import pagina_programas
 from artigos import pagina_artigos
 from videos import pagina_videos
+from citacoes import pagina_citacoes
 
 # Dicionários de tradução
 textos = {
@@ -15,7 +16,8 @@ textos = {
         "programas": "Programas",
         "videos": "Vídeos",
         "titulo_principal": "Luciano Decourt",
-        "bem_vindo": "Bem-vindo ao site de Luciano Decourt"
+        "bem_vindo": "Bem-vindo ao site de Luciano Decourt",
+        "citações" : "citations"
     },
     "en": {
         "selecione_pagina": "Select the page:",
@@ -26,7 +28,8 @@ textos = {
         "programas": "Programs",
         "videos": "Videos",
         "titulo_principal": "Luciano Decourt",
-        "bem_vindo": "Welcome to Luciano Decourt's website"
+        "bem_vindo": "Welcome to Luciano Decourt's website",
+        "citações" : "citations"
     }
 }
 
@@ -88,7 +91,7 @@ def main():
     # Exibe as opções de navegação como Radio Button
     pagina = st.sidebar.radio(
         "",  # O label vazio, pois já colocamos o título personalizado acima
-        [texto["pagina_principal"], texto["engenheiro"], texto["obras"], texto["artigos"], texto["videos"], texto["programas"]]
+        [texto["pagina_principal"], texto["engenheiro"], texto["obras"], texto["artigos"], texto["videos"], texto["citacoes"], texto["programas"]]
     )
 
     # Exibe a página correspondente
@@ -104,6 +107,8 @@ def main():
         pagina_programas()
     elif pagina == texto["videos"]:
         pagina_videos()
+    elif pagina == texto["citacoes"]:
+        pagina_citacoes()
 
 if __name__ == '__main__':
     main()
