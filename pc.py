@@ -17,7 +17,7 @@ textos = {
         "videos": "Vídeos",
         "titulo_principal": "Luciano Decourt",
         "bem_vindo": "Bem-vindo ao site de Luciano Decourt",
-        "citações" : "citations"
+        "citações" : "Citações"
     },
     "en": {
         "selecione_pagina": "Select the page:",
