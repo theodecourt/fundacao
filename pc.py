@@ -91,7 +91,7 @@ def main():
     # Exibe as opções de navegação como Radio Button
     pagina = st.sidebar.radio(
         "",  # O label vazio, pois já colocamos o título personalizado acima
-        [texto["pagina_principal"], texto["engenheiro"], texto["obras"], texto["artigos"], texto["videos"], texto["citacoes"], texto["programas"]]
+        [texto["pagina_principal"], texto["engenheiro"], texto["obras"], texto["artigos"], texto["videos"], texto["citações"], texto["programas"]]
     )
 
     # Exibe a página correspondente
@@ -107,7 +107,7 @@ def main():
         pagina_programas()
     elif pagina == texto["videos"]:
         pagina_videos()
-    elif pagina == texto["citacoes"]:
+    elif pagina == texto["citações"]:
         pagina_citacoes()
 
 if __name__ == '__main__':
