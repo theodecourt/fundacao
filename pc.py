@@ -46,15 +46,6 @@ def pagina_obras(texto):
 
 # Função principal para a navegação
 def main():
-    # Escolha de idioma
-    idioma = st.sidebar.selectbox("Choose Language", ["Português", "English"])
-    
-    # Define o dicionário de textos conforme o idioma
-    if idioma == "Português":
-        texto = textos["pt"]
-    else:
-        texto = textos["en"]
-
     # Injetando CSS para alterar a cor do selectbox e o cursor
     st.markdown("""
         <style>
@@ -71,8 +62,23 @@ def main():
         div[role="radiogroup"] > label > div:first-child input:checked ~ div {
             background-color: #003366;  /* Cor azul escuro quando selecionado */
         }
+
+        /* Aumentar o tamanho do texto do seletor de idioma */
+        label[for="Choose Language"] {
+            font-size: 24px !important;
+            font-weight: bold;
+        }
         </style>
         """, unsafe_allow_html=True)
+
+    # Escolha de idioma
+    idioma = st.sidebar.selectbox("Choose Language", ["Português", "English"])
+    
+    # Define o dicionário de textos conforme o idioma
+    if idioma == "Português":
+        texto = textos["pt"]
+    else:
+        texto = textos["en"]
 
     st.sidebar.title("Navegação")
 
