@@ -1,19 +1,18 @@
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import ipywidgets as widgets
-from IPython.display import display, clear_output
 from scipy.optimize import fsolve
 
 # Função para carregar a tabela
 def carregar_tabela():
-    arq = input('Qual é o nome do arquivo? ')
-    arq = arq + ".csv"
-    return pd.read_csv(arq, delimiter=';')
+    uploaded_file = st.file_uploader("Escolha o arquivo CSV", type="csv")
+    if uploaded_file is not None:
+        return pd.read_csv(uploaded_file, delimiter=';')
 
-# Função para calcular a intersecção entre duas regressões
+# Função para calcular a interseccao entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
@@ -39,7 +38,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     return interseccao
 
 # Função para calcular a regressão e plotar os gráficos
-def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
+def calcular_regressao(tabela, num_regressoes, pontos_tipos):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
     
@@ -51,7 +50,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
     
     for i in range(num_regressoes):
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
-        linear = tabela[lin_in-1:lin_fim]  # Ajuste para começar do ponto 1
+        linear = tabela[lin_in-1:lin_fim]
         if tipo_regressao == 'linear':
             reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
             predict = np.poly1d(reg)
@@ -62,7 +61,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
         else:  # log
             reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
             predict = np.poly1d(reg)
-            x = np.linspace(0.1, tabela['Carga'].max(), 100)  # Evitar log(0)
+            x = np.linspace(0, tabela['Carga'].max(), 100)
             y = 10**predict(np.log10(x))
             corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
             equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
@@ -75,66 +74,25 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
         regressions.append(reg)
         tipos.append(tipo_regressao)
         
-        print(f'Pontos utilizados na regressão {i+1}: ', lin_in, ' até ', lin_fim)
-        print('Tipo de regressão: ', tipo_regressao.capitalize())
-        print('Equação da regressão: ', equacao)
-        print('R²: ', R_sq)
+        st.write(f'Pontos utilizados na regressão {i+1}: ', lin_in, ' até ', lin_fim)
+        st.write('Tipo de regressão: ', tipo_regressao.capitalize())
+        st.write('Equação da regressão: ', equacao)
+        st.write('R2: ', R_sq)
     
-    # Calcular e mostrar pontos de interseção entre todas as combinações possíveis
+    # Calcular e mostrar pontos de interseccao entre todas as combinações possíveis
     for i in range(num_regressoes):
         for j in range(i + 1, num_regressoes):
             interseccao = calcular_interseccao(regressions[i], regressions[j], tipos[i], tipos[j])
-            plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
-            print(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
-    
-    # Calcular Quc
-    recalque_critico = 0.1 * diametro_estaca
-    for i, reg in enumerate(regressions):
-        if tipos[i] == 'linear':
-            a = reg[1]
-            b = reg[0]
-            quc = a / ((1 / recalque_critico) - b)
-        else:  # log
-            def func_quc_log(x):
-                return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque_critico)
-            quc = fsolve(func_quc_log, x0=1)[0]
-        print(f'Quc para a regressão {i+1}: {quc:.4f}')
+            plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseccao com um 'x' vermelho
+            st.write(f'Interseccao entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
     
     plt.xlabel('Carga')
     plt.ylabel('Rigidez')
     plt.title('Regressão de Carga x Rigidez')
-    plt.legend().set_visible(False)  # Oculta a caixa de legenda
-    plt.show()
+    plt.legend().set_visible(False)
+    st.pyplot(plt)
 
-# Função para criar widgets de entrada para os pontos iniciais e finais e tipo de regressão
-def criar_widgets_pontos_tipos(num_regressoes):
-    widgets_pontos_tipos = []
-    for i in range(num_regressoes):
-        lin_in = widgets.IntText(description=f'Ponto inicial {i+1}:', value=1)  # Ajuste para iniciar do ponto 1
-        lin_fim = widgets.IntText(description=f'Ponto final {i+1}:')
-        tipo_regressao = widgets.Dropdown(
-            options=['linear', 'log'],
-            value='linear',
-            description=f'Tipo {i+1}:',
-        )
-        widgets_pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
-    return widgets_pontos_tipos
-
-# Função para exibir widgets de entrada para os pontos iniciais e finais e tipo de regressão
-def exibir_widgets_pontos_tipos(widgets_pontos_tipos):
-    for lin_in, lin_fim, tipo_regressao in widgets_pontos_tipos:
-        display(lin_in)
-        display(lin_fim)
-        display(tipo_regressao)
-
-# Função para obter os valores dos widgets de entrada
-def obter_valores_widgets(widgets_pontos_tipos):
-    pontos_tipos = []
-    for lin_in, lin_fim, tipo_regressao in widgets_pontos_tipos:
-        pontos_tipos.append((lin_in.value, lin_fim.value, tipo_regressao.value))
-    return pontos_tipos
-
-# Função principal para executar o fluxo do primeiro programa
+# Função principal do primeiro programa
 def primeiro_programa():
     tabela = carregar_tabela()
     print(tabela.columns)
@@ -163,29 +121,12 @@ def primeiro_programa():
     )
     display(dropdown)
     
-    # Caixas de entrada para os pontos iniciais e finais e tipo de regressão
     widgets_pontos_tipos = criar_widgets_pontos_tipos(1)
     exibir_widgets_pontos_tipos(widgets_pontos_tipos)
     
     def on_change(change):
-        if change['type'] == 'change' and change['name'] == 'value':
-            num_regressoes = change['new']
-            clear_output(wait=True)
-            display(dropdown)
-            
-            # Exibe as caixas de entrada conforme o número de regressões selecionadas
-            widgets_pontos_tipos = criar_widgets_pontos_tipos(num_regressoes)
-            exibir_widgets_pontos_tipos(widgets_pontos_tipos)
-            
-            button = widgets.Button(description="Calcular Regressões")
-            display(button)
-            
-            def on_button_click(b):
-                pontos_tipos = obter_valores_widgets(widgets_pontos_tipos)
-                calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca)
-            
-            button.on_click(on_button_click)
-    
+        # Código da função on_change
+
     dropdown.observe(on_change)
     
     button = widgets.Button(description="Calcular Regressões")
