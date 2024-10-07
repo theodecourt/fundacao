@@ -1,18 +1,31 @@
 import streamlit as st
 
-# Função para mostrar a página de citações
-def pagina_citacoes():
-    # Texto introdutório sobre Luciano Decourt
-    st.markdown("""
+# Dicionário de textos para citações em diferentes idiomas
+citacoes_textos = {
+    "pt": """
     <div style="text-align: justify; font-size:16px;">
     <p><strong>O Professor Luciano Decourt</strong> é amplamente reconhecido por suas contribuições significativas na área de engenharia geotécnica e fundações. 
     Ao longo de sua carreira, ele tem sido uma referência para pesquisadores e profissionais, acumulando mais de 500 citações em trabalhos acadêmicos e técnicos. 
     Seu trabalho inovador e profundo conhecimento têm influenciado o desenvolvimento de metodologias e práticas na engenharia de fundações, destacando-se pela aplicação prática e teórica em projetos de grande escala.</p>
     <p>A seguir, apresentamos algumas das citações que refletem a relevância e o impacto de suas pesquisas no campo:</p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+    "en": """
+    <div style="text-align: justify; font-size:16px;">
+    <p><strong>Professor Luciano Decourt</strong> is widely recognized for his significant contributions in the field of geotechnical engineering and foundations.
+    Throughout his career, he has been a reference for researchers and professionals, accumulating more than 500 citations in academic and technical works.
+    His innovative work and deep knowledge have influenced the development of methodologies and practices in foundation engineering, standing out for their practical and theoretical application in large-scale projects.</p>
+    <p>Below, we present some of the citations that reflect the relevance and impact of his research in the field:</p>
+    </div>
+    """
+}
 
-    # Código HTML contendo as citações
+# Função para mostrar a página de citações
+def pagina_citacoes(idioma):
+    # Exibe o texto introdutório de acordo com o idioma
+    st.markdown(citacoes_textos[idioma], unsafe_allow_html=True)
+
+    # Código HTML contendo as citações (as citações permanecem inalteradas, independentemente do idioma)
     citacoes_html = """
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -89,5 +102,6 @@ def pagina_citacoes():
     </body>
     </html>
     """
+    
     # Renderizar o HTML no Streamlit
     st.markdown(citacoes_html, unsafe_allow_html=True)

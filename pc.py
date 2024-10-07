@@ -109,7 +109,8 @@ def main():
     elif pagina == texto["videos"]:
         pagina_videos()
     elif pagina == texto["citações"]:
-        pagina_citacoes()
+        pagina_citacoes(idioma)
+
 
 if __name__ == '__main__':
     main()
