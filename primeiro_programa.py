@@ -57,17 +57,27 @@ def botao_download_exemplo(idioma):
 
 # Função para carregar a tabela
 def carregar_tabela(idioma):
+    # Aceita arquivos CSV e XLSX
     if idioma == "Português":
-        uploaded_file = st.file_uploader("Escolha o arquivo CSV", type="csv")
+        uploaded_file = st.file_uploader("Escolha o arquivo CSV ou XLSX", type=["csv", "xlsx"])
         if uploaded_file is not None:
-            return pd.read_csv(uploaded_file, delimiter=';')
+            # Verifica o tipo de arquivo e carrega o arquivo corretamente
+            if uploaded_file.name.endswith('.csv'):
+                return pd.read_csv(uploaded_file, delimiter=';')
+            elif uploaded_file.name.endswith('.xlsx'):
+                return pd.read_excel(uploaded_file)
         
         st.title('Download Exemplo Arquivo CSV')
         botao_download_exemplo(idioma)
+    
     else:
-        uploaded_file = st.file_uploader("Choose the CSV file", type="csv")
+        uploaded_file = st.file_uploader("Choose the CSV or XLSX file", type=["csv", "xlsx"])
         if uploaded_file is not None:
-            return pd.read_csv(uploaded_file, delimiter=';')
+            # Verifica o tipo de arquivo e carrega o arquivo corretamente
+            if uploaded_file.name.endswith('.csv'):
+                return pd.read_csv(uploaded_file, delimiter=';')
+            elif uploaded_file.name.endswith('.xlsx'):
+                return pd.read_excel(uploaded_file)
 
         st.title('Download Example CSV File')
         botao_download_exemplo(idioma)
