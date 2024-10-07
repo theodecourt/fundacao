@@ -171,12 +171,12 @@ def primeiro_programa(idioma):
             diametro_estaca = st.number_input('What is the pile diameter?', min_value=0.01, format="%.2f")
 
             # Plot the graphs before displaying regression options
-            fig = px.scatter(tabela, x="Carga", y="Recalque")
+            fig = px.scatter(tabela, x="Load", y="Settlement")
             fig.update_yaxes(autorange="reversed")
             st.plotly_chart(fig)
 
             tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
-            fig2 = px.scatter(tabela, x="Carga", y="rigidez")
+            fig2 = px.scatter(tabela, x="Load", y="Stiffness")
             st.plotly_chart(fig2)
 
             tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
