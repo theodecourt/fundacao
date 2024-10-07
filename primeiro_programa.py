@@ -6,14 +6,34 @@ import math
 from scipy.optimize import fsolve
 import streamlit as st
 
+def download_csv_exemplo():
+    # Cria um DataFrame de exemplo
+    data = {
+        "Carga": [10, 20, 30, 40, 50],
+        "Recalque": [0.1, 0.15, 0.2, 0.25, 0.3]
+    }
+    df = pd.DataFrame(data)
+    
+    # Converte o DataFrame para CSV
+    csv = df.to_csv(index=False, sep=';')
+    
+    # Oferece o arquivo CSV para download
+    st.download_button(
+        label="Download CSV de Exemplo",
+        data=csv,
+        file_name='exemplo.csv',
+        mime='text/csv'
+    )
+
+
 # Função para carregar a tabela
 def carregar_tabela():
     uploaded_file = st.file_uploader("Escolha o arquivo CSV", type="csv")
     if uploaded_file is not None:
         return pd.read_csv(uploaded_file, delimiter=';')
-    else:
-        st.warning("Por favor, carregue um arquivo CSV.")
-        return None
+    
+    st.write("Caso queira um arquivo CSV de exemplo para testar, você pode baixá-lo abaixo:")
+    download_csv_exemplo()
 
 # Função para calcular a intersecção entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
