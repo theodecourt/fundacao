@@ -17,7 +17,7 @@ textos = {
         "videos": "Vídeos",
         "titulo_principal": "Luciano Décourt",
         "bem_vindo": "Bem-vindo ao site de Luciano Décourt",
-        "citações": "Citações"
+        "citações" : "Citações"
     },
     "en": {
         "selecione_pagina": "Select the page:",
@@ -29,7 +29,7 @@ textos = {
         "videos": "Videos",
         "titulo_principal": "Luciano Décourt",
         "bem_vindo": "Welcome to Luciano Décourt's website",
-        "citações": "Citations"
+        "citações" : "Citations"
     }
 }
 
@@ -43,16 +43,13 @@ def pagina_engenheiro(texto, idioma):
     st.title(texto["titulo_principal"])
     st.markdown(mostrar_curriculo(idioma), unsafe_allow_html=True)
 
+
 def pagina_obras(texto):
     st.title(texto["obras"])
     st.write("Conteúdo de obras será adicionado aqui.")
 
 # Função principal para a navegação
 def main():
-    # Inicializa o session_state para manter a página atual
-    if "pagina_atual" not in st.session_state:
-        st.session_state["pagina_atual"] = "Página Principal"  # Valor inicial
-
     # Injetando CSS para alterar a cor do selectbox e o cursor
     st.markdown("""
         <style>
@@ -92,30 +89,11 @@ def main():
     # Exibe o título de seleção com tamanho maior usando HTML
     st.sidebar.markdown(f"<h2 style='font-size: 24px;'>{texto['selecione_pagina']}</h2>", unsafe_allow_html=True)
 
-    # Lista de páginas para navegação
-    paginas_disponiveis = [
-        texto["pagina_principal"], 
-        texto["engenheiro"], 
-        texto["obras"], 
-        texto["artigos"], 
-        texto["videos"], 
-        texto["citações"], 
-        texto["programas"]
-    ]
-
-    # Verifica se a página atual está nas páginas disponíveis (evita erros)
-    if st.session_state["pagina_atual"] not in paginas_disponiveis:
-        st.session_state["pagina_atual"] = paginas_disponiveis[0]  # Define a página padrão como inicial
-
-    # Exibe as opções de navegação como Radio Button, e salva a página selecionada no session_state
+    # Exibe as opções de navegação como Radio Button
     pagina = st.sidebar.radio(
-        "",  
-        paginas_disponiveis,
-        index=paginas_disponiveis.index(st.session_state["pagina_atual"])  # Mantém a página atual selecionada
+        "",  # O label vazio, pois já colocamos o título personalizado acima
+        [texto["pagina_principal"], texto["engenheiro"], texto["obras"], texto["artigos"], texto["videos"], texto["citações"], texto["programas"]]
     )
-
-    # Atualiza a página atual no session_state ao trocar de página
-    st.session_state["pagina_atual"] = pagina
 
     # Exibe a página correspondente
     if pagina == texto["pagina_principal"]:
