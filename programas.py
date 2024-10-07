@@ -15,7 +15,7 @@ def pagina_programas(idioma):
             primeiro_programa(idioma)
 
         # Chama o segundo programa
-        elif programa_selecionado == 'REC-0 (ZDSM)':
+        elif programa_selecionado == 'REC-0':
             segundo_programa(idioma)
     else:
         st.title('Programs of Luciano Décourt')
@@ -28,6 +28,6 @@ def pagina_programas(idioma):
             primeiro_programa(idioma)
 
         # Calls the second program
-        elif program_selected == 'REC-0 (ZDSM)':
+        elif program_selected == 'ZDSM':
             segundo_programa(idioma)
 
