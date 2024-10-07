@@ -62,7 +62,7 @@ def carregar_tabela(idioma):
         if uploaded_file is not None:
             return pd.read_csv(uploaded_file, delimiter=';')
         
-        st.title('Download de Exemplo de Arquivo CSV')
+        st.title('Download Exemplo Arquivo CSV')
         botao_download_exemplo(idioma)
     else:
         uploaded_file = st.file_uploader("Choose the CSV file", type="csv")
