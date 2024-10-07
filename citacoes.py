@@ -4,6 +4,7 @@ import streamlit as st
 def pagina_citacoes(idioma):
     # Texto introdutório sobre Luciano Decourt
     if idioma == "Português":
+        st.title('Artigos em que Luciano Décourt foi citado')
         st.markdown("""
         <div style="text-align: justify; font-size:16px;">
         <p><strong>O Professor Luciano Decourt</strong> é amplamente reconhecido por suas contribuições significativas na área de engenharia geotécnica e fundações. 
@@ -13,6 +14,7 @@ def pagina_citacoes(idioma):
         </div>
         """, unsafe_allow_html=True)
     else:
+        st.title('Articles in which Luciano Décourt was cited')
         st.markdown("""<div style="text-align: justify; font-size:16px;">
         <p><strong>Professor Luciano Decourt</strong> is widely recognized for his significant contributions in the field of geotechnical engineering and foundations.
         Throughout his career, he has been a reference for researchers and professionals, accumulating more than 500 citations in academic and technical works.
