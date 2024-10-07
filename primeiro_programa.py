@@ -53,7 +53,7 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
     return quc
 
 # Função para calcular a regressão e plotar os gráficos
-def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
+def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
     
@@ -91,11 +91,19 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
 
         plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
         
-        st.write(f'Pontos utilizados na regressão {i+1}: {lin_in} até {lin_fim}')
-        st.write('Tipo de regressão:', tipo_regressao.capitalize())
-        st.write('Equação da regressão:', equacao)
-        st.write('R²:', R_sq)
-        st.write(f'Quc para a regressão {i+1}: {quc:.4f} tf')
+        if idioma == "Português":
+            st.write(f'Pontos utilizados na regressão {i+1}: {lin_in} até {lin_fim}')
+            st.write('Tipo de regressão:', tipo_regressao.capitalize())
+            st.write('Equação da regressão:', equacao)
+            st.write('R²:', R_sq)
+            st.write(f'Quc para a regressão {i+1}: {quc:.4f} tf')
+        else:
+            st.write(f'Points used in regression {i+1}: {lin_in} to {lin_fim}')
+            st.write('Regression type:', tipo_regressao.capitalize())
+            st.write('Regression equation:', equacao)
+            st.write('R²:', R_sq)
+            st.write(f'Quc for regression {i+1}: {quc:.4f} tf')
+
 
         # Adiciona a regressão e o tipo de regressão à lista
         regressions.append(reg)
@@ -111,9 +119,15 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
                     plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
                     st.write(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
     
-    plt.xlabel('Carga')
-    plt.ylabel('Rigidez')
-    plt.title('Regressão de Carga x Rigidez')
+    if idioma == "Português":
+        plt.xlabel('Carga')
+        plt.ylabel('Rigidez')
+        plt.title('Regressão de Carga x Rigidez')
+    else:
+        plt.xlabel('Load')
+        plt.ylabel('Stiffness')
+        plt.title('Load vs Stiffness Regression')
+
     plt.legend().set_visible(False)  # Oculta a caixa de legenda
     st.pyplot(plt)
 
@@ -180,5 +194,5 @@ def primeiro_programa(idioma):
                 pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
             
             if st.button('Calculate Regressions'):
-                calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca)
+                calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
 
