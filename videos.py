@@ -1,7 +1,11 @@
 import streamlit as st
 
-def pagina_videos():
-    st.title('Vídeos de Luciano Decourt')
+def pagina_videos(idioma):
+    if idioma == "Português":
+        st.title('Vídeos de Luciano Decourt')
+    else:
+        st.title('Videos of Luciano Décourt')
+    
 
     # Lista de vídeos
     videos = [

@@ -106,7 +106,7 @@ def main():
     elif pagina == texto["programas"]:
         pagina_programas()
     elif pagina == texto["videos"]:
-        pagina_videos()
+        pagina_videos(idioma)
     elif pagina == texto["citações"]:
         pagina_citacoes(idioma)
 
