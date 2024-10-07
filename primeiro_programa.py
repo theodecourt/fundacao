@@ -27,13 +27,13 @@ def botao_download_exemplo():
         """
         <style>
         .stDownloadButton button {
-            background-color: #ff5733;
-            color: white;
+            background-color: #FFC300;
+            color: black;
             font-weight: bold;
         }
         .stDownloadButton button:hover {
-            background-color: #e74c3c;
-            color: white;
+            background-color: #FFB000;
+            color: black;
         }
         </style>
         """, unsafe_allow_html=True)
