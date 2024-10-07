@@ -17,7 +17,7 @@ textos = {
         "videos": "Vídeos",
         "titulo_principal": "Luciano Décourt",
         "bem_vindo": "Bem-vindo ao site de Luciano Décourt",
-        "citações" : "Citações"
+        "citações": "Citações"
     },
     "en": {
         "selecione_pagina": "Select the page:",
@@ -29,7 +29,7 @@ textos = {
         "videos": "Videos",
         "titulo_principal": "Luciano Décourt",
         "bem_vindo": "Welcome to Luciano Décourt's website",
-        "citações" : "Citations"
+        "citações": "Citations"
     }
 }
 
@@ -42,7 +42,6 @@ def pagina_principal(texto):
 def pagina_engenheiro(texto, idioma):
     st.title(texto["titulo_principal"])
     st.markdown(mostrar_curriculo(idioma), unsafe_allow_html=True)
-
 
 def pagina_obras(texto):
     st.title(texto["obras"])
@@ -110,7 +109,6 @@ def main():
         pagina_videos()
     elif pagina == texto["citações"]:
         pagina_citacoes(idioma)
-
 
 if __name__ == '__main__':
     main()
