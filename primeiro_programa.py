@@ -15,7 +15,7 @@ def criar_tabela_exemplo():
     return pd.DataFrame(dados)
 
 # Função para gerar o botão de download com destaque
-def botao_download_exemplo():
+def botao_download_exemplo(idioma):
     # Cria a tabela de exemplo
     tabela_exemplo = criar_tabela_exemplo()
 
@@ -39,22 +39,38 @@ def botao_download_exemplo():
         """, unsafe_allow_html=True)
 
     # Botão de download com estilo personalizado
-    st.download_button(
-        label="Baixar exemplo CSV",
-        data=csv,
-        file_name="exemplo.csv",
-        mime='text/csv'
-    )
+    if idioma == "Português":
+        st.download_button(
+            label="Baixar exemplo CSV",
+            data=csv,
+            file_name="exemplo.csv",
+            mime='text/csv'
+        )
+    else:
+        st.download_button(
+            label="Download example CSV",
+            data=csv,
+            file_name="example.csv",
+            mime='text/csv'
+        )
 
 
 # Função para carregar a tabela
-def carregar_tabela():
-    uploaded_file = st.file_uploader("Escolha o arquivo CSV", type="csv")
-    if uploaded_file is not None:
-        return pd.read_csv(uploaded_file, delimiter=';')
-    
-    st.title('Download de Exemplo de Arquivo CSV')
-    botao_download_exemplo()
+def carregar_tabela(idioma):
+    if idioma == "Português":
+        uploaded_file = st.file_uploader("Escolha o arquivo CSV", type="csv")
+        if uploaded_file is not None:
+            return pd.read_csv(uploaded_file, delimiter=';')
+        
+        st.title('Download de Exemplo de Arquivo CSV')
+        botao_download_exemplo(idioma)
+    else:
+        uploaded_file = st.file_uploader("Choose the CSV file", type="csv")
+        if uploaded_file is not None:
+            return pd.read_csv(uploaded_file, delimiter=';')
+
+        st.title('Download Example CSV File')
+        botao_download_exemplo(idioma)
 
 # Função para calcular a intersecção entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
@@ -175,7 +191,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 # Função principal para executar o fluxo
 def primeiro_programa(idioma):
     if idioma == "Português":
-        tabela = carregar_tabela()
+        tabela = carregar_tabela(idioma)
         if tabela is not None:
             # Pergunta o diâmetro da estaca
             diametro_estaca = st.number_input('Qual é o diâmetro da estaca?', min_value=0.01, format="%.2f")
@@ -206,7 +222,7 @@ def primeiro_programa(idioma):
             if st.button('Calcular Regressões'):
                 calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
     else:
-        tabela = carregar_tabela()
+        tabela = carregar_tabela(idioma)
         if tabela is not None:
             # Ask for the pile diameter
             diametro_estaca = st.number_input('What is the pile diameter?', min_value=0.01, format="%.2f")
