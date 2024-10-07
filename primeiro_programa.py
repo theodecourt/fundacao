@@ -53,8 +53,8 @@ def carregar_tabela():
     if uploaded_file is not None:
         return pd.read_csv(uploaded_file, delimiter=';')
     
-    st.write("Caso queira um arquivo CSV de exemplo para testar, você pode baixá-lo abaixo:")
-    download_csv_exemplo()
+    st.title('Download de Exemplo de Arquivo CSV')
+    botao_download_exemplo()
 
 # Função para calcular a intersecção entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
