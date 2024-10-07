@@ -1,8 +1,12 @@
 import streamlit as st
 
-def pagina_artigos():
+def pagina_artigos(idioma):
     # Criação da página de artigos
-    st.title('Artigos de Luciano Décourt')
+    if idioma == "Português":
+        st.title('Artigos de Luciano Décourt')
+    else:
+        st.title('Articles by Luciano Décourt')
+    
 
     artigos_html = """
     <style>
