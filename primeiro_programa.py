@@ -6,22 +6,43 @@ import math
 from scipy.optimize import fsolve
 import streamlit as st
 
-def download_csv_exemplo():
-    # Cria um DataFrame de exemplo
-    data = {
-        "Carga": [10, 20, 30, 40, 50],
-        "Recalque": [0.1, 0.15, 0.2, 0.25, 0.3]
+# Função para criar o dataframe de exemplo
+def criar_tabela_exemplo():
+    dados = {
+        "Carga": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+        "Recalque": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
     }
-    df = pd.DataFrame(data)
-    
-    # Converte o DataFrame para CSV
-    csv = df.to_csv(index=False, sep=';')
-    
-    # Oferece o arquivo CSV para download
+    return pd.DataFrame(dados)
+
+# Função para gerar o botão de download com destaque
+def botao_download_exemplo():
+    # Cria a tabela de exemplo
+    tabela_exemplo = criar_tabela_exemplo()
+
+    # Converte para CSV
+    csv = tabela_exemplo.to_csv(index=False, sep=';')
+
+    # Adiciona estilo para destacar o botão de download
+    st.markdown(
+        """
+        <style>
+        .stDownloadButton button {
+            background-color: #ff5733;
+            color: white;
+            font-weight: bold;
+        }
+        .stDownloadButton button:hover {
+            background-color: #e74c3c;
+            color: white;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+    # Botão de download com estilo personalizado
     st.download_button(
-        label="Download CSV de Exemplo",
+        label="Baixar exemplo CSV",
         data=csv,
-        file_name='exemplo.csv',
+        file_name="exemplo.csv",
         mime='text/csv'
     )
 
