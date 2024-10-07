@@ -119,33 +119,65 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
 
 # Função principal para executar o fluxo
 def primeiro_programa(idioma):
-    tabela = carregar_tabela()
-    if tabela is not None:
-        # Pergunta o diâmetro da estaca
-        diametro_estaca = st.number_input('Qual é o diâmetro da estaca?', min_value=0.0, format="%.2f")
+    if idioma == "Português":
+        tabela = carregar_tabela()
+        if tabela is not None:
+            # Pergunta o diâmetro da estaca
+            diametro_estaca = st.number_input('Qual é o diâmetro da estaca?', min_value=0.0, format="%.2f")
 
-        # Plota os gráficos antes de exibir as opções de regressões
-        fig = px.scatter(tabela, x="Carga", y="Recalque")
-        fig.update_yaxes(autorange="reversed")
-        st.plotly_chart(fig)
+            # Plota os gráficos antes de exibir as opções de regressões
+            fig = px.scatter(tabela, x="Carga", y="Recalque")
+            fig.update_yaxes(autorange="reversed")
+            st.plotly_chart(fig)
 
-        tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
-        fig2 = px.scatter(tabela, x="Carga", y="rigidez")
-        st.plotly_chart(fig2)
+            tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
+            fig2 = px.scatter(tabela, x="Carga", y="rigidez")
+            st.plotly_chart(fig2)
 
-        tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
-        tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
-        tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
-        
-        # Seletor para o número de regressões
-        num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
-        
-        pontos_tipos = []
-        for i in range(num_regressoes):
-            lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, max_value=len(tabela), value=1)
-            lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
-            tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
-            pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
-        
-        if st.button('Calcular Regressões'):
-            calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca)
+            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
+            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
+            tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
+            
+            # Seletor para o número de regressões
+            num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
+            
+            pontos_tipos = []
+            for i in range(num_regressoes):
+                lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, max_value=len(tabela), value=1)
+                lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
+                tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
+                pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+            
+            if st.button('Calcular Regressões'):
+                calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca)
+    else:
+        tabela = carregar_tabela()
+        if tabela is not None:
+            # Pergunta o diâmetro da estaca
+            diametro_estaca = st.number_input('What is the diameter of the pile?', min_value=0.0, format="%.2f")
+
+            # Plota os gráficos antes de exibir as opções de regressões
+            fig = px.scatter(tabela, x="Load", y="Settlement")
+            fig.update_yaxes(autorange="reversed")
+            st.plotly_chart(fig)
+
+            tabela['stiffness'] = tabela.apply(lambda row: row.Load / row.Settlement, axis=1)
+            fig2 = px.scatter(tabela, x="Load", y="stiffness")
+            st.plotly_chart(fig2)
+
+            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Load, 10), axis=1)
+            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Settlement, 10), axis=1)
+            tabela['logStiffness'] = tabela.apply(lambda row: math.log(row.stiffness, 10), axis=1)
+            
+            # Seletor para o número de regressões
+            num_regressoes = st.selectbox('How many regressions?', [1, 2, 3], index=0)
+            
+            pontos_tipos = []
+            for i in range(num_regressoes):
+                lin_in = st.number_input(f'Starting point {i+1}:', min_value=1, max_value=len(tabela), value=1)
+                lin_fim = st.number_input(f'Ending point {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
+                tipo_regressao = st.selectbox(f'Regression type {i+1}:', ['linear', 'log'], index=0)
+                pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+            
+            if st.button('Calculate Regressions'):
+                calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca)
