@@ -17,7 +17,7 @@ def mostrar_curriculo():
         <li>Instituto de Pesquisas Técnológicas (IPT), Seção de Solos</li>
         <li>Brasconsult, Engenharia de Projetos</li>
         <li>Laboratório Rankine de Engenharia Civil</li>
-        <li>Luciano Decourt Consultoria</li>
+        <li>Luciano Décourt Consultoria</li>
         <li>Faculdade de Engenharia da FAAP (Professor Titular de Mecânica dos Solos)</li>
     </ul>
 
