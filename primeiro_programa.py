@@ -153,23 +153,23 @@ def primeiro_programa(idioma):
     else:
         tabela = carregar_tabela()
         if tabela is not None:
-            # Pergunta o diâmetro da estaca
-            diametro_estaca = st.number_input('What is the diameter of the pile?', min_value=0.0, format="%.2f")
+            # Ask for the pile diameter
+            diametro_estaca = st.number_input('What is the pile diameter?', min_value=0.0, format="%.2f")
 
-            # Plota os gráficos antes de exibir as opções de regressões
-            fig = px.scatter(tabela, x="Load", y="Settlement")
+            # Plot the graphs before displaying regression options
+            fig = px.scatter(tabela, x="Carga", y="Recalque")
             fig.update_yaxes(autorange="reversed")
             st.plotly_chart(fig)
 
-            tabela['stiffness'] = tabela.apply(lambda row: row.Load / row.Settlement, axis=1)
-            fig2 = px.scatter(tabela, x="Load", y="stiffness")
+            tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
+            fig2 = px.scatter(tabela, x="Carga", y="rigidez")
             st.plotly_chart(fig2)
 
-            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Load, 10), axis=1)
-            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Settlement, 10), axis=1)
-            tabela['logStiffness'] = tabela.apply(lambda row: math.log(row.stiffness, 10), axis=1)
+            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
+            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
+            tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
             
-            # Seletor para o número de regressões
+            # Selector for the number of regressions
             num_regressoes = st.selectbox('How many regressions?', [1, 2, 3], index=0)
             
             pontos_tipos = []
@@ -181,3 +181,4 @@ def primeiro_programa(idioma):
             
             if st.button('Calculate Regressions'):
                 calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca)
+
