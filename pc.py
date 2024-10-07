@@ -92,11 +92,26 @@ def main():
     # Exibe o título de seleção com tamanho maior usando HTML
     st.sidebar.markdown(f"<h2 style='font-size: 24px;'>{texto['selecione_pagina']}</h2>", unsafe_allow_html=True)
 
+    # Lista de páginas para navegação
+    paginas_disponiveis = [
+        texto["pagina_principal"], 
+        texto["engenheiro"], 
+        texto["obras"], 
+        texto["artigos"], 
+        texto["videos"], 
+        texto["citações"], 
+        texto["programas"]
+    ]
+
+    # Verifica se a página atual está nas páginas disponíveis (evita erros)
+    if st.session_state["pagina_atual"] not in paginas_disponiveis:
+        st.session_state["pagina_atual"] = paginas_disponiveis[0]  # Define a página padrão como inicial
+
     # Exibe as opções de navegação como Radio Button, e salva a página selecionada no session_state
     pagina = st.sidebar.radio(
         "",  
-        [texto["pagina_principal"], texto["engenheiro"], texto["obras"], texto["artigos"], texto["videos"], texto["citações"], texto["programas"]],
-        index=[texto["pagina_principal"], texto["engenheiro"], texto["obras"], texto["artigos"], texto["videos"], texto["citações"], texto["programas"]].index(st.session_state["pagina_atual"])  # Mantém a página atual selecionada
+        paginas_disponiveis,
+        index=paginas_disponiveis.index(st.session_state["pagina_atual"])  # Mantém a página atual selecionada
     )
 
     # Atualiza a página atual no session_state ao trocar de página
