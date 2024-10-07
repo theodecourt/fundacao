@@ -44,7 +44,7 @@ def calcular_valores(Q, NSPT, tipo_solo):
     return quc, q, Beq, area, s0
 
 # Função principal do segundo programa para ser exibido no Streamlit
-def segundo_programa():
+def segundo_programa(idioma):
     st.title("Cálculos Geotécnicos")
 
     # Solicita os dados de entrada do usuário

@@ -118,7 +118,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca):
     st.pyplot(plt)
 
 # Função principal para executar o fluxo
-def primeiro_programa():
+def primeiro_programa(idioma):
     tabela = carregar_tabela()
     if tabela is not None:
         # Pergunta o diâmetro da estaca
