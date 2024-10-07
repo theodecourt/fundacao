@@ -39,9 +39,10 @@ def pagina_principal(texto):
     st.image("foto.jpeg", caption="Luciano Décourt", width=300)
     st.write(texto["bem_vindo"])
 
-def pagina_engenheiro(texto):
+def pagina_engenheiro(texto, idioma):
     st.title(texto["titulo_principal"])
-    st.markdown(mostrar_curriculo(), unsafe_allow_html=True)
+    st.markdown(mostrar_curriculo(idioma), unsafe_allow_html=True)
+
 
 def pagina_obras(texto):
     st.title(texto["obras"])
@@ -98,7 +99,7 @@ def main():
     if pagina == texto["pagina_principal"]:
         pagina_principal(texto)
     elif pagina == texto["engenheiro"]:
-        pagina_engenheiro(texto)
+        pagina_engenheiro(texto, idioma)
     elif pagina == texto["obras"]:
         pagina_obras(texto)
     elif pagina == texto["artigos"]:
