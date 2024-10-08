@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import math
 from scipy.optimize import fsolve
 import streamlit as st
+import io
 
 # Função para criar o dataframe de exemplo
 def criar_tabela_exemplo():
@@ -15,12 +16,18 @@ def criar_tabela_exemplo():
     return pd.DataFrame(dados)
 
 # Função para gerar o botão de download com destaque
+# Função para gerar o botão de download de arquivo XLSX
 def botao_download_exemplo(idioma):
     # Cria a tabela de exemplo
     tabela_exemplo = criar_tabela_exemplo()
 
-    # Converte para CSV
-    csv = tabela_exemplo.to_csv(index=False, sep=';')
+    # Converte o dataframe para Excel
+    output = io.BytesIO()  # Um buffer em memória para o arquivo Excel
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        tabela_exemplo.to_excel(writer, index=False, sheet_name='Exemplo')
+
+    # Move o ponteiro do buffer para o início do arquivo
+    output.seek(0)
 
     # Adiciona estilo para destacar o botão de download
     st.markdown(
@@ -41,17 +48,17 @@ def botao_download_exemplo(idioma):
     # Botão de download com estilo personalizado
     if idioma == "Português":
         st.download_button(
-            label="Baixar exemplo CSV",
-            data=csv,
-            file_name="exemplo.csv",
-            mime='text/csv'
+            label="Baixar exemplo XLSX",
+            data=output,
+            file_name="exemplo.xlsx",
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
     else:
         st.download_button(
-            label="Download example CSV",
-            data=csv,
-            file_name="example.csv",
-            mime='text/csv'
+            label="Download example XLSX",
+            data=output,
+            file_name="example.xlsx",
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
 
 
