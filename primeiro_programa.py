@@ -48,14 +48,14 @@ def botao_download_exemplo(idioma):
     # Botão de download com estilo personalizado
     if idioma == "Português":
         st.download_button(
-            label="Baixar exemplo XLSX",
-            data=output,
-            file_name="exemplo.xlsx",
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
+        label="Baixando exemplo",
+        data=output,
+        file_name="exemplo.xlsx",
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
     else:
         st.download_button(
-            label="Download example XLSX",
+            label="Downloading example",
             data=output,
             file_name="example.xlsx",
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -73,10 +73,10 @@ def carregar_tabela(idioma):
                 return pd.read_csv(uploaded_file, delimiter=';')
             elif uploaded_file.name.endswith('.xlsx'):
                 return pd.read_excel(uploaded_file)
-        
-        st.title('Download Exemplo Arquivo CSV')
+
+        st.title('Baixando exemplo')
         botao_download_exemplo(idioma)
-    
+
     else:
         uploaded_file = st.file_uploader("Choose the CSV or XLSX file", type=["csv", "xlsx"])
         if uploaded_file is not None:
@@ -86,7 +86,7 @@ def carregar_tabela(idioma):
             elif uploaded_file.name.endswith('.xlsx'):
                 return pd.read_excel(uploaded_file)
 
-        st.title('Download Example CSV File')
+        st.title('Downloading example')
         botao_download_exemplo(idioma)
 
 # Função para calcular a intersecção entre duas regressões
