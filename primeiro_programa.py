@@ -20,15 +20,8 @@ def botao_download_exemplo(idioma):
     # Cria a tabela de exemplo
     tabela_exemplo = criar_tabela_exemplo()
 
-    # Converte para CSV
+    # Gera o CSV
     csv = tabela_exemplo.to_csv(index=False, sep=';')
-    
-    # Converte para XLSX
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        tabela_exemplo.to_excel(writer, index=False, sheet_name='Exemplo')
-        writer.save()
-    xlsx_data = buffer.getvalue()
 
     # Adiciona estilo para destacar o botão de download
     st.markdown(
@@ -46,19 +39,13 @@ def botao_download_exemplo(idioma):
         </style>
         """, unsafe_allow_html=True)
 
-    # Botão de download CSV
+    # Botão de download para o arquivo CSV
     if idioma == "Português":
         st.download_button(
             label="Baixar exemplo CSV",
             data=csv,
             file_name="exemplo.csv",
             mime='text/csv'
-        )
-        st.download_button(
-            label="Baixar exemplo XLSX",
-            data=xlsx_data,
-            file_name="exemplo.xlsx",
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
     else:
         st.download_button(
@@ -67,9 +54,24 @@ def botao_download_exemplo(idioma):
             file_name="example.csv",
             mime='text/csv'
         )
+
+    # Botão de download para o arquivo XLSX
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        tabela_exemplo.to_excel(writer, index=False, sheet_name='Sheet1')
+        writer.close()  # Isso já vai salvar automaticamente no contexto
+
+    if idioma == "Português":
+        st.download_button(
+            label="Baixar exemplo XLSX",
+            data=buffer,
+            file_name="exemplo.xlsx",
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
         st.download_button(
             label="Download example XLSX",
-            data=xlsx_data,
+            data=buffer,
             file_name="example.xlsx",
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
