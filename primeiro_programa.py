@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import math
 from scipy.optimize import fsolve
 import streamlit as st
+from io import BytesIO
 
 # Função para criar o dataframe de exemplo
 def criar_tabela_exemplo():
