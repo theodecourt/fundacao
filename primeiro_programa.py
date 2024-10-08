@@ -21,6 +21,13 @@ def botao_download_exemplo(idioma):
 
     # Converte para CSV
     csv = tabela_exemplo.to_csv(index=False, sep=';')
+    
+    # Converte para XLSX
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        tabela_exemplo.to_excel(writer, index=False, sheet_name='Exemplo')
+        writer.save()
+    xlsx_data = buffer.getvalue()
 
     # Adiciona estilo para destacar o botão de download
     st.markdown(
@@ -38,7 +45,7 @@ def botao_download_exemplo(idioma):
         </style>
         """, unsafe_allow_html=True)
 
-    # Botão de download com estilo personalizado
+    # Botão de download CSV
     if idioma == "Português":
         st.download_button(
             label="Baixar exemplo CSV",
@@ -46,12 +53,24 @@ def botao_download_exemplo(idioma):
             file_name="exemplo.csv",
             mime='text/csv'
         )
+        st.download_button(
+            label="Baixar exemplo XLSX",
+            data=xlsx_data,
+            file_name="exemplo.xlsx",
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
     else:
         st.download_button(
             label="Download example CSV",
             data=csv,
             file_name="example.csv",
             mime='text/csv'
+        )
+        st.download_button(
+            label="Download example XLSX",
+            data=xlsx_data,
+            file_name="example.xlsx",
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
 
 
