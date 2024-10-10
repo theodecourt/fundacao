@@ -211,7 +211,7 @@ def primeiro_programa(idioma):
         tabela = carregar_tabela(idioma)
         if tabela is not None:
             # Pergunta o diâmetro da estaca
-            diametro_estaca = st.number_input('Qual é o diâmetro da estaca?', min_value=0.01, format="%.2f")
+            diametro_estaca = st.number_input('Qual é o diâmetro da estaca? (mm)', min_value=0.01, format="%.2f")
 
             # Plota os gráficos antes de exibir as opções de regressões
             fig = px.scatter(tabela, x="Carga", y="Recalque")
@@ -242,7 +242,7 @@ def primeiro_programa(idioma):
         tabela = carregar_tabela(idioma)
         if tabela is not None:
             # Ask for the pile diameter
-            diametro_estaca = st.number_input('What is the pile diameter?', min_value=0.01, format="%.2f")
+            diametro_estaca = st.number_input('What is the pile diameter? (mm)', min_value=0.01, format="%.2f")
 
             # Plot the graphs before displaying regression options
             fig = px.scatter(tabela, x="Carga", y="Recalque")
