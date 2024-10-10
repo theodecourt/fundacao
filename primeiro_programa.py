@@ -58,7 +58,6 @@ def botao_download_exemplo(idioma):
         mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
-# Função para carregar a tabela
 def carregar_tabela(idioma):
     # Aceita arquivos CSV e XLSX
     uploaded_file = st.file_uploader("Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file", type=["csv", "xlsx"])
@@ -70,18 +69,26 @@ def carregar_tabela(idioma):
         elif uploaded_file.name.endswith('.xlsx'):
             tabela = pd.read_excel(uploaded_file)
 
+        # Verificar o nome das colunas
+        st.write("Colunas no arquivo:", tabela.columns)
+
         # Verifica o idioma e ajusta as colunas
         if idioma == "Português":
             if "Carga" in tabela.columns and "Recalque" in tabela.columns:
                 tabela.columns = ["Carga", "Recalque"]
+            else:
+                st.error("O arquivo CSV/XLSX deve conter as colunas 'Carga' e 'Recalque'.")
         else:
             if "Load" in tabela.columns and "Settlement" in tabela.columns:
                 tabela.columns = ["Carga", "Recalque"]  # Renomeia para usar os mesmos nomes internamente
-
+            else:
+                st.error("The CSV/XLSX file must contain the columns 'Load' and 'Settlement'.")
+                
         return tabela
 
     st.title('Baixando exemplo' if idioma == "Português" else 'Downloading example')
     botao_download_exemplo(idioma)
+
 
 # Função para calcular a intersecção entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
