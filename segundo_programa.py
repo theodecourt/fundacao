@@ -85,7 +85,6 @@ def segundo_programa(idioma):
                 st.write(f"Novo q (tf/m²) para s0 = s1: {q_new}")
                 st.write(f"Novo Beq (m) com q ajustado: {Beq_new}")
                 st.write(f"Nova Área (m²) com Beq ajustado: {area_new}")
-
     else:
         st.title("Geotechnical Calculations")
 
