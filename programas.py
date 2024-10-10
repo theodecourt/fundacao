@@ -5,7 +5,7 @@ from segundo_programa import segundo_programa  # Importa o segundo programa
 # Função para a página "Programas"
 def pagina_programas(idioma):
     if idioma == "Português":
-        st.title('Programas de Luciano Décourt')
+        st.title('Programas de Luciano Decourt')
 
         # Selectbox para selecionar qual programa será executado
         programa_selecionado = st.selectbox('Selecione o programa:', ['Interpretação de Provas de Carga', 'REC-0'])
