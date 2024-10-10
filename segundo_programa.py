@@ -45,7 +45,6 @@ def calcular_valores(Q, NSPT, tipo_solo):
 
 # Função principal do segundo programa para ser exibido no Streamlit
 def segundo_programa(idioma):
-    st.title(idioma)
     if idioma == "Português":
         st.title("Cálculos Geotécnicos")
 
