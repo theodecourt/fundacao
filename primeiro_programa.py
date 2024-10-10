@@ -8,18 +8,25 @@ import streamlit as st
 import io
 
 # Função para criar o dataframe de exemplo
-def criar_tabela_exemplo():
-    dados = {
-        "Carga": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
-        "Recalque": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
-    }
+def criar_tabela_exemplo(idioma):
+    if idioma == "Português":
+        dados = {
+            "Carga (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+            "Recalque (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+        }
+    else:
+        dados = {
+            "Load (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+            "Settlement (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+        }
     return pd.DataFrame(dados)
+
 
 # Função para gerar o botão de download com destaque
 # Função para gerar o botão de download de arquivo XLSX
 def botao_download_exemplo(idioma):
     # Cria a tabela de exemplo
-    tabela_exemplo = criar_tabela_exemplo()
+    tabela_exemplo = criar_tabela_exemplo(idioma)
 
     # Converte o dataframe para Excel
     output = io.BytesIO()  # Um buffer em memória para o arquivo Excel
@@ -62,7 +69,6 @@ def botao_download_exemplo(idioma):
         )
 
 
-# Função para carregar a tabela
 def carregar_tabela(idioma):
     # Aceita arquivos CSV e XLSX
     if idioma == "Português":
@@ -70,24 +76,30 @@ def carregar_tabela(idioma):
         if uploaded_file is not None:
             # Verifica o tipo de arquivo e carrega o arquivo corretamente
             if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
+                tabela = pd.read_csv(uploaded_file, delimiter=';')
             elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
+                tabela = pd.read_excel(uploaded_file)
 
-        st.title('Baixando exemplo')
-        botao_download_exemplo(idioma)
-
+            # Ajusta os nomes das colunas, se necessário
+            if "Carga (tf)" in tabela.columns and "Recalque (mm)" in tabela.columns:
+                return tabela
+            else:
+                st.error("Erro: As colunas do arquivo devem ser 'Carga (tf)' e 'Recalque (mm)'.")
     else:
         uploaded_file = st.file_uploader("Choose the CSV or XLSX file", type=["csv", "xlsx"])
         if uploaded_file is not None:
             # Verifica o tipo de arquivo e carrega o arquivo corretamente
             if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
+                tabela = pd.read_csv(uploaded_file, delimiter=';')
             elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
+                tabela = pd.read_excel(uploaded_file)
 
-        st.title('Downloading example')
-        botao_download_exemplo(idioma)
+            # Ajusta os nomes das colunas, se necessário
+            if "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
+                return tabela
+            else:
+                st.error("Error: The file must contain 'Load (tf)' and 'Settlement (mm)' columns.")
+    return None
 
 # Função para calcular a intersecção entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
@@ -126,13 +138,17 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
         quc = fsolve(func_quc_log, x0=1)[0]
     return quc
 
-# Função para calcular a regressão e plotar os gráficos
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
-    x0 = tabela['Carga']
-    y0 = tabela['rigidez']
+    # Mapeia as colunas corretas com base no idioma
+    if idioma == "Português":
+        x0 = tabela['Carga (tf)']
+        y0 = tabela['Recalque (mm)']
+    else:
+        x0 = tabela['Load (tf)']
+        y0 = tabela['Settlement (mm)']
     
     colors = ['b', 'red', 'green']
-    plt.plot(x0, y0, 'go', label='Dados Originais')
+    plt.plot(x0, y0, 'go', label='Dados Originais' if idioma == "Português" else 'Original Data')
     
     regressions = []
     tipos = []
@@ -143,19 +159,19 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
         linear = tabela[lin_in-1:lin_fim]
         if tipo_regressao == 'linear':
-            reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
+            reg = np.polyfit(linear[x0.name], linear[y0.name], deg=1)
             predict = np.poly1d(reg)
-            x = np.linspace(0, tabela['Carga'].max(), 100)
+            x = np.linspace(0, tabela[x0.name].max(), 100)
             y = predict(x)
-            corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
-            equacao = f'rigidez = {reg[0]:.4f} * Carga + {reg[1]:.4f}'
+            corr_matrix = np.corrcoef(linear[y0.name], linear[x0.name])
+            equacao = f'rigidez = {reg[0]:.4f} * Carga + {reg[1]:.4f}' if idioma == "Português" else f'stiffness = {reg[0]:.4f} * Load + {reg[1]:.4f}'
         else:  # log
-            reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
+            reg = np.polyfit(np.log10(linear[x0.name]), np.log10(linear[y0.name]), deg=1)
             predict = np.poly1d(reg)
-            x = np.linspace(0.1, tabela['Carga'].max(), 100)  # Evitar log(0)
+            x = np.linspace(0.1, tabela[x0.name].max(), 100)  # Evitar log(0)
             y = 10**predict(np.log10(x))
-            corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
-            equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
+            corr_matrix = np.corrcoef(np.log10(linear[y0.name]), np.log10(linear[x0.name]))
+            equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}' if idioma == "Português" else f'log(stiffness) = {reg[0]:.4f} * log(Load) + {reg[1]:.4f}'
         
         corr = corr_matrix[0, 1]
         R_sq = corr**2
@@ -163,7 +179,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         # Calcular o Quc
         quc = calcular_quc(reg, tipo_regressao, recalque_critico)
 
-        plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
+        plt.plot(x, y, colors[i], label=f'Regressão {i+1}' if idioma == "Português" else f'Regression {i+1}')
         
         if idioma == "Português":
             st.write(f'Pontos utilizados na regressão {i+1}: {lin_in} até {lin_fim}')
@@ -178,7 +194,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {i+1}: {quc:.4f} tf')
 
-
         # Adiciona a regressão e o tipo de regressão à lista
         regressions.append(reg)
         tipos.append(tipo_regressao)
@@ -191,15 +206,15 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 if i < len(regressions) and j < len(regressions):
                     interseccao = calcular_interseccao(regressions[i], regressions[j], tipos[i], tipos[j])
                     plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
-                    st.write(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
+                    st.write(f'Interseção entre regressão {i+1} e {j+1}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}' if idioma == "Português" else f'Intersection between regression {i+1} and {j+1}: Load = {interseccao[0]:.4f}, Stiffness = {interseccao[1]:.4f}')
     
     if idioma == "Português":
-        plt.xlabel('Carga')
-        plt.ylabel('Rigidez')
+        plt.xlabel('Carga (tf)')
+        plt.ylabel('Rigidez (tf/mm)')
         plt.title('Regressão de Carga x Rigidez')
     else:
-        plt.xlabel('Load')
-        plt.ylabel('Stiffness')
+        plt.xlabel('Load (tf)')
+        plt.ylabel('Stiffness (tf/mm)')
         plt.title('Load vs Stiffness Regression')
 
     plt.legend().set_visible(False)  # Oculta a caixa de legenda
