@@ -8,18 +8,23 @@ import streamlit as st
 import io
 
 # Função para criar o dataframe de exemplo
-def criar_tabela_exemplo():
-    dados = {
-        "Carga": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
-        "Recalque": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
-    }
+def criar_tabela_exemplo(idioma):
+    if idioma == "Português":
+        dados = {
+            "Carga (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+            "Recalque (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+        }
+    else:
+        dados = {
+            "Load (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+            "Settlement (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+        }
     return pd.DataFrame(dados)
 
-# Função para gerar o botão de download com destaque
 # Função para gerar o botão de download de arquivo XLSX
 def botao_download_exemplo(idioma):
     # Cria a tabela de exemplo
-    tabela_exemplo = criar_tabela_exemplo()
+    tabela_exemplo = criar_tabela_exemplo(idioma)
 
     # Converte o dataframe para Excel
     output = io.BytesIO()  # Um buffer em memória para o arquivo Excel
@@ -46,48 +51,37 @@ def botao_download_exemplo(idioma):
         """, unsafe_allow_html=True)
 
     # Botão de download com estilo personalizado
-    if idioma == "Português":
-        st.download_button(
-        label="Baixando exemplo",
+    st.download_button(
+        label="Baixando exemplo" if idioma == "Português" else "Downloading example",
         data=output,
-        file_name="exemplo.xlsx",
+        file_name="exemplo.xlsx" if idioma == "Português" else "example.xlsx",
         mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    else:
-        st.download_button(
-            label="Downloading example",
-            data=output,
-            file_name="example.xlsx",
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-
 
 # Função para carregar a tabela
 def carregar_tabela(idioma):
     # Aceita arquivos CSV e XLSX
-    if idioma == "Português":
-        uploaded_file = st.file_uploader("Escolha o arquivo CSV ou XLSX", type=["csv", "xlsx"])
-        if uploaded_file is not None:
-            # Verifica o tipo de arquivo e carrega o arquivo corretamente
-            if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
-            elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
+    uploaded_file = st.file_uploader("Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file", type=["csv", "xlsx"])
+    
+    if uploaded_file is not None:
+        # Verifica o tipo de arquivo e carrega o arquivo corretamente
+        if uploaded_file.name.endswith('.csv'):
+            tabela = pd.read_csv(uploaded_file, delimiter=';')
+        elif uploaded_file.name.endswith('.xlsx'):
+            tabela = pd.read_excel(uploaded_file)
 
-        st.title('Baixando exemplo')
-        botao_download_exemplo(idioma)
+        # Verifica o idioma e ajusta as colunas
+        if idioma == "Português":
+            if "Carga" in tabela.columns and "Recalque" in tabela.columns:
+                tabela.columns = ["Carga", "Recalque"]
+        else:
+            if "Load" in tabela.columns and "Settlement" in tabela.columns:
+                tabela.columns = ["Carga", "Recalque"]  # Renomeia para usar os mesmos nomes internamente
 
-    else:
-        uploaded_file = st.file_uploader("Choose the CSV or XLSX file", type=["csv", "xlsx"])
-        if uploaded_file is not None:
-            # Verifica o tipo de arquivo e carrega o arquivo corretamente
-            if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
-            elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
+        return tabela
 
-        st.title('Downloading example')
-        botao_download_exemplo(idioma)
+    st.title('Baixando exemplo' if idioma == "Português" else 'Downloading example')
+    botao_download_exemplo(idioma)
 
 # Função para calcular a intersecção entre duas regressões
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
@@ -207,76 +201,44 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
 # Função principal para executar o fluxo
 def primeiro_programa(idioma):
-    if idioma == "Português":
-        tabela = carregar_tabela(idioma)
-        if tabela is not None:
-            # Pergunta o diâmetro da estaca
-            diametro_estaca = st.number_input('Qual é o diâmetro da estaca? (mm)', min_value=0.01, format="%.2f")
+    tabela = carregar_tabela(idioma)
+    if tabela is not None:
+        # Pergunta o diâmetro da estaca
+        diametro_estaca = st.number_input('Qual é o diâmetro da estaca? (mm)' if idioma == "Português" else 'What is the pile diameter? (mm)', min_value=0.01, format="%.2f")
 
-            # Plota os gráficos antes de exibir as opções de regressões
-            fig = px.scatter(tabela, x="Carga", y="Recalque")
-            fig.update_yaxes(autorange="reversed")
-            st.plotly_chart(fig)
+        # Plota os gráficos antes de exibir as opções de regressões
+        fig = px.scatter(tabela, x="Carga", y="Recalque")
+        fig.update_yaxes(autorange="reversed")
+        fig.update_layout(
+            title="Regressão de Carga x Recalque" if idioma == "Português" else "Load vs Settlement Regression",
+            xaxis_title="Carga (tf)" if idioma == "Português" else "Load (tf)",
+            yaxis_title="Recalque (mm)" if idioma == "Português" else "Settlement (mm)"
+        )
+        st.plotly_chart(fig)
 
-            tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
-            fig2 = px.scatter(tabela, x="Carga", y="rigidez")
-            st.plotly_chart(fig2)
+        # Calcula e exibe rigidez
+        tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
+        fig2 = px.scatter(tabela, x="Carga", y="rigidez")
+        fig2.update_layout(
+            title="Regressão de Carga x Rigidez" if idioma == "Português" else "Load vs Stiffness Regression",
+            xaxis_title="Carga (tf)" if idioma == "Português" else "Load (tf)",
+            yaxis_title="Rigidez (tf/mm)" if idioma == "Português" else "Stiffness (tf/mm)"
+        )
+        st.plotly_chart(fig2)
 
-            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
-            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
-            tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
-            
-            # Seletor para o número de regressões
-            num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
-            
-            pontos_tipos = []
-            for i in range(num_regressoes):
-                lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, max_value=len(tabela), value=1)
-                lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
-                tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:', ['linear', 'log'], index=0)
-                pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
-            
-            if st.button('Calcular Regressões'):
-                calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
-    else:
-        tabela = carregar_tabela(idioma)
-        if tabela is not None:
-            # Ask for the pile diameter
-            diametro_estaca = st.number_input('What is the pile diameter? (mm)', min_value=0.01, format="%.2f")
-
-            # Plot the graphs before displaying regression options
-            fig = px.scatter(tabela, x="Carga", y="Recalque")
-            fig.update_yaxes(autorange="reversed")
-            fig.update_layout(
-                title="Load vs Settlement", 
-                xaxis_title="Load (tf)", 
-                yaxis_title="Settlement (mm)"
-            )
-            st.plotly_chart(fig)
-
-            tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
-            fig2 = px.scatter(tabela, x="Carga", y="rigidez")
-            fig2.update_layout(
-                title="Load vs Stiffness", 
-                xaxis_title="Load (tf)", 
-                yaxis_title="Stiffness (tf/mm)"
-            )
-            st.plotly_chart(fig2)
-
-            tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
-            tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
-            tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
-            
-            # Selector for the number of regressions
-            num_regressoes = st.selectbox('How many regressions?', [1, 2, 3], index=0)
-            
-            pontos_tipos = []
-            for i in range(num_regressoes):
-                lin_in = st.number_input(f'Starting point {i+1}:', min_value=1, max_value=len(tabela), value=1)
-                lin_fim = st.number_input(f'Ending point {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
-                tipo_regressao = st.selectbox(f'Regression type {i+1}:', ['linear', 'log'], index=0)
-                pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
-            
-            if st.button('Calculate Regressions'):
-                calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
-
+        tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
+        tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
+        tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
+        
+        # Seletor para o número de regressões
+        num_regressoes = st.selectbox('Quantas regressões:' if idioma == "Português" else 'How many regressions?', [1, 2, 3], index=0)
+        
+        pontos_tipos = []
+        for i in range(num_regressoes):
+            lin_in = st.number_input(f'Ponto inicial {i+1}:' if idioma == "Português" else f'Starting point {i+1}:', min_value=1, max_value=len(tabela), value=1)
+            lin_fim = st.number_input(f'Ponto final {i+1}:' if idioma == "Português" else f'Ending point {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
+            tipo_regressao = st.selectbox(f'Tipo de regressão {i+1}:' if idioma == "Português" else f'Regression type {i+1}:', ['linear', 'log'], index=0)
+            pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+        
+        if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
+            calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
