@@ -26,7 +26,7 @@ def criar_tabela_exemplo(idioma):
 # Função para gerar o botão de download de arquivo XLSX
 def botao_download_exemplo(idioma):
     # Cria a tabela de exemplo
-    tabela_exemplo = criar_tabela_exemplo()
+    tabela_exemplo = criar_tabela_exemplo(idioma)
 
     # Converte o dataframe para Excel
     output = io.BytesIO()  # Um buffer em memória para o arquivo Excel
