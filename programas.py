@@ -18,7 +18,7 @@ def pagina_programas(idioma):
         elif programa_selecionado == 'REC-zero':
             segundo_programa(idioma)
     else:
-        st.title('Programs of Luciano Decourt')
+        st.title('Programs of Luciano Décourt')
 
         # Selectbox to select which program will be executed
         program_selected = st.selectbox('Select the program:', ['Load Test Interpretation', 'ZDSM'])
