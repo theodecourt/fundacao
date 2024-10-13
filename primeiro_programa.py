@@ -82,18 +82,9 @@ def carregar_tabela(idioma):
         if uploaded_file is not None:
             # Verifica o tipo de arquivo e carrega o arquivo corretamente
             if uploaded_file.name.endswith('.csv'):
-                tabela = pd.read_csv(uploaded_file, delimiter=';')
+                return pd.read_csv(uploaded_file, delimiter=';')
             elif uploaded_file.name.endswith('.xlsx'):
-                tabela = pd.read_excel(uploaded_file)
-
-            # Renomeia as colunas se elas estiverem em Inglês
-            if "Load" in tabela.columns and "Settlement" in tabela.columns:
-                tabela = tabela.rename(columns={"Load": "C", "Settlement": "R"})
-            else:
-                st.error("The file does not contain the columns 'Load' and 'Settlement'.")
-                return None
-
-            return tabela
+                return pd.read_excel(uploaded_file)
 
         st.title('Downloading example')
         botao_download_exemplo(idioma)
@@ -219,6 +210,8 @@ def primeiro_programa(idioma):
     if idioma == "Português":
         tabela = carregar_tabela(idioma)
         if tabela is not None:
+            if "Load" in tabela.columns and "Settlement" in tabela.columns:
+                tabela = tabela.rename(columns={"Load": "Carga", "Settlement": "Recalque"})
             # Pergunta o diâmetro da estaca
             diametro_estaca = st.number_input('Qual é o diâmetro da estaca? (mm)', min_value=0.01, format="%.2f")
 
