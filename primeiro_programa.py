@@ -155,7 +155,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             x = np.linspace(0, tabela['Carga'].max(), 100)
             y = predict(x)
             corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
-            equacao = f'rigidez = {reg[0]:.4f} * Carga + {reg[1]:.4f}'
+            if idioma == "Português":
+                equacao = f'rigidez (tf/mm) = {reg[0]:.4f} * Carga (tf) + {reg[1]:.4f}'
+            else:
+                equacao = f'stiffness (tf/mm) = {reg[0]:.4f} * Load (tf) + {reg[1]:.4f}'
+
         else:  # log
             reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
             predict = np.poly1d(reg)
