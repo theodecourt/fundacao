@@ -7,6 +7,8 @@ from scipy.optimize import fsolve
 import streamlit as st
 import io
 
+num_romanos = {1 : 'I', 2 : 'II', 3 : 'III'}
+
 # Função para criar o dataframe de exemplo
 def criar_tabela_exemplo(idioma):
     if idioma == "Português":
@@ -134,7 +136,6 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
     return quc
 
 # Função para calcular a regressão e plotar os gráficos
-# Função para calcular a regressão e plotar os gráficos
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
@@ -157,9 +158,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             y = predict(x)
             corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
             if idioma == "Português":
-                equacao = f'Equação {i+1}: rigidez (tf/mm) = {reg[0]:.4f} * Carga (tf) + {reg[1]:.4f}'
+                equacao = f'rigidez (tf/mm) = {reg[0]:.4f} * Carga (tf) + {reg[1]:.4f}'
             else:
-                equacao = f'Equation {i+1}: stiffness (tf/mm) = {reg[0]:.4f} * Load (tf) + {reg[1]:.4f}'
+                equacao = f'stiffness (tf/mm) = {reg[0]:.4f} * Load (tf) + {reg[1]:.4f}'
 
         else:  # log
             reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
@@ -167,10 +168,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             x = np.linspace(0.1, tabela['Carga'].max(), 100)  # Evitar log(0)
             y = 10**predict(np.log10(x))
             corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
-            if idioma == "Português":
-                equacao = f'Equação {i+1}: log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
-            else:
-                equacao = f'Equation {i+1}: log(stiffness) = {reg[0]:.4f} * log(Load) + {reg[1]:.4f}'
+            equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
         
         corr = corr_matrix[0, 1]
         R_sq = corr**2
@@ -181,17 +179,17 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
         
         if idioma == "Português":
-            st.write(f'Pontos utilizados na regressão {i+1}: {lin_in} até {lin_fim}')
+            st.write(f'Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}')
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
-            st.write(equacao)
+            st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
-            st.write(f'Quc para a regressão {i+1}: {quc:.4f} tf')
+            st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.4f} tf')
         else:
-            st.write(f'Points used in regression {i+1}: {lin_in} to {lin_fim}')
+            st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
-            st.write(equacao)
+            st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
-            st.write(f'Quc for regression {i+1}: {quc:.4f} tf')
+            st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.4f} tf')
 
 
         # Adiciona a regressão e o tipo de regressão à lista
@@ -219,7 +217,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     plt.legend().set_visible(False)  # Oculta a caixa de legenda
     st.pyplot(plt)
-
 
 # Função principal para executar o fluxo
 def primeiro_programa(idioma):
