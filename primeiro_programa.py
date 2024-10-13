@@ -82,9 +82,18 @@ def carregar_tabela(idioma):
         if uploaded_file is not None:
             # Verifica o tipo de arquivo e carrega o arquivo corretamente
             if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
+                tabela = pd.read_csv(uploaded_file, delimiter=';')
             elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
+                tabela = pd.read_excel(uploaded_file)
+
+            # Renomeia as colunas se elas estiverem em Inglês
+            if "Load" in tabela.columns and "Settlement" in tabela.columns:
+                tabela = tabela.rename(columns={"Load": "C", "Settlement": "R"})
+            else:
+                st.error("The file does not contain the columns 'Load' and 'Settlement'.")
+                return None
+
+            return tabela
 
         st.title('Downloading example')
         botao_download_exemplo(idioma)
