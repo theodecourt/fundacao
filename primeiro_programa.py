@@ -183,7 +183,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
-            st.write(f'Quc para a regressão {i+1}: {quc:.4f} tf')
+            st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.4f} tf')
         else:
             st.write(f'Points used in regression {i+1}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
