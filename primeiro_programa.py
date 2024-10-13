@@ -179,7 +179,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
         
         if idioma == "Português":
-            st.write(f'Pontos utilizados na regressão {i+1}: {lin_in} até {lin_fim}')
+            st.write(f'Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}')
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
