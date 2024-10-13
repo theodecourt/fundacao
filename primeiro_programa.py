@@ -185,11 +185,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.4f} tf')
         else:
-            st.write(f'Points used in regression {i+1}: {lin_in} to {lin_fim}')
+            st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
-            st.write(f'Quc for regression {i+1}: {quc:.4f} tf')
+            st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.4f} tf')
 
 
         # Adiciona a regressão e o tipo de regressão à lista
@@ -297,7 +297,7 @@ def primeiro_programa(idioma):
             for i in range(num_regressoes):
                 lin_in = st.number_input(f'Starting point {i+1}:', min_value=1, max_value=len(tabela), value=1)
                 lin_fim = st.number_input(f'Ending point {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
-                tipo_regressao = st.selectbox(f'Regression type {i+1}:', ['linear', 'log'], index=0)
+                tipo_regressao = st.selectbox(f'Regression type {num_romanos[i+1]}:', ['linear', 'log'], index=0)
                 pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
             
             if st.button('Calculate Regressions'):
