@@ -245,7 +245,7 @@ def primeiro_programa(idioma):
             tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
             
             # Seletor para o número de regressões
-            num_regressoes = st.selectbox('Quantas regressões:', [1, 2, 3], index=0)
+            num_regressoes = st.selectbox('Quantas regressões:', [num_romanos[1], num_romanos[2], num_romanos[3]], index=0)
             
             pontos_tipos = []
             for i in range(num_regressoes):
