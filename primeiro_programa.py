@@ -246,6 +246,11 @@ def primeiro_programa(idioma):
     else:
         tabela = carregar_tabela(idioma)
         if tabela is not None:
+            if "Carga (tf)" in tabela.columns and "Recalque (mm)" in tabela.columns:
+                tabela = tabela.rename(columns={"Carga (tf)": "Carga", "Recalque (mm)": "Recalque"})
+            else:
+                if "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
+                    tabela = tabela.rename(columns={"Load (tf)": "Carga", "Settlement (mm)": "Recalque"})
             # Ask for the pile diameter
             diametro_estaca = st.number_input('What is the pile diameter? (mm)', min_value=0.01, format="%.2f")
 
