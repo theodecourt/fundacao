@@ -8,18 +8,25 @@ import streamlit as st
 import io
 
 # Função para criar o dataframe de exemplo
-def criar_tabela_exemplo():
-    dados = {
-        "Carga": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
-        "Recalque": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
-    }
-    return pd.DataFrame(dados)
+def criar_tabela_exemplo(idioma):
+    if idioma == "Português":
+        dados = {
+            "Carga (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+            "Recalque (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+        }
+        return pd.DataFrame(dados)
+    else:
+        dados = {
+            "Load (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+            "Settlement (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+        }
+        return pd.DataFrame(dados)
 
 # Função para gerar o botão de download com destaque
 # Função para gerar o botão de download de arquivo XLSX
 def botao_download_exemplo(idioma):
     # Cria a tabela de exemplo
-    tabela_exemplo = criar_tabela_exemplo()
+    tabela_exemplo = criar_tabela_exemplo(idioma)
 
     # Converte o dataframe para Excel
     output = io.BytesIO()  # Um buffer em memória para o arquivo Excel
