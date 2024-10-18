@@ -249,8 +249,8 @@ def primeiro_programa(idioma):
             
             pontos_tipos = []
             for i in range(num_regressoes):
-                lin_in = st.number_input(f'Ponto inicial {i+1}:', min_value=1, max_value=len(tabela), value=1)
-                lin_fim = st.number_input(f'Ponto final {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
+                lin_in = st.number_input(f'Ponto inicial {num_romanos[i+1]}:', min_value=1, max_value=len(tabela), value=1)
+                lin_fim = st.number_input(f'Ponto final {num_romanos[i+1]}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
                 tipo_regressao = st.selectbox(f'Tipo de regressão {num_romanos[i+1]}:', ['linear', 'log'], index=0)
                 pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
             
@@ -295,8 +295,8 @@ def primeiro_programa(idioma):
             
             pontos_tipos = []
             for i in range(num_regressoes):
-                lin_in = st.number_input(f'Starting point {i+1}:', min_value=1, max_value=len(tabela), value=1)
-                lin_fim = st.number_input(f'Ending point {i+1}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
+                lin_in = st.number_input(f'Starting point {num_romanos[i+1]}:', min_value=1, max_value=len(tabela), value=1)
+                lin_fim = st.number_input(f'Ending point {num_romanos[i+1]}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
                 tipo_regressao = st.selectbox(f'Regression type {num_romanos[i+1]}:', ['linear', 'log'], index=0)
                 pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
             
