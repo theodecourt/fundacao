@@ -178,18 +178,19 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
-            recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', format="%.2f")
+            recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
-            recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', format="%.2f")
+            recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
 
-        if recalque_input:
+        # Cálculo da Carga Baseado no Recalque Inserido
+        if recalque_input is not None and recalque_input != 0:
             if tipo_regressao == 'linear':
-                carga_calculada = (recalque_input - regressions[i][1]) / regressions[i][0]
+                carga_calculada = (recalque_input * regressions[i][0]) + regressions[i][1]
             else:  # log
                 carga_calculada = 10 ** ((math.log10(recalque_input) - regressions[i][1]) / regressions[i][0])
             
@@ -257,6 +258,7 @@ def primeiro_programa(idioma):
 
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
             calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
+
 
 
 
