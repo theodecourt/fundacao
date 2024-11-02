@@ -139,6 +139,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     
     # Plotar as regressões utilizando as interseções calculadas
     for i in range(num_regressoes):
+        tipo_regressao = tipos[i]
         if tipo_regressao == 'linear':
             x_inicio = interseccoes[i]
             x_fim = interseccoes[i+1]
@@ -177,12 +178,25 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
+            recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', format="%.2f")
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
+            recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', format="%.2f")
+
+        if recalque_input:
+            if tipo_regressao == 'linear':
+                carga_calculada = (recalque_input - regressions[i][1]) / regressions[i][0]
+            else:  # log
+                carga_calculada = 10 ** ((math.log10(recalque_input) - regressions[i][1]) / regressions[i][0])
+            
+            if idioma == "Português":
+                st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
+            else:
+                st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
 
     for interseccao in interseccoes[1:-1]:
         plt.axvline(x=interseccao, color='gray', linestyle='--')
