@@ -179,6 +179,19 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
             recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
+            
+            # Cálculo da Carga Baseado no Recalque Inserido
+            if recalque_input is not None and recalque_input != 0:
+                try:
+                    if tipo_regressao == 'linear':
+                        carga_calculada = (recalque_input - regressions[i][1]) / regressions[i][0]
+                    else:  # log
+                        carga_calculada = 10 ** ((math.log10(recalque_input) - regressions[i][1]) / regressions[i][0])
+                    
+                    st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
+                except Exception as e:
+                    st.error(f"Erro ao calcular a carga: {e}")
+
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
@@ -186,21 +199,18 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
             recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
-
-        # Cálculo da Carga Baseado no Recalque Inserido
-        if recalque_input is not None and recalque_input != 0:
-            try:
-                if tipo_regressao == 'linear':
-                    carga_calculada = (recalque_input - regressions[i][1]) / regressions[i][0]
-                else:  # log
-                    carga_calculada = 10 ** ((math.log10(recalque_input) - regressions[i][1]) / regressions[i][0])
-                
-                if idioma == "Português":
-                    st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
-                else:
+            
+            # Cálculo da Carga Baseado no Recalque Inserido
+            if recalque_input is not None and recalque_input != 0:
+                try:
+                    if tipo_regressao == 'linear':
+                        carga_calculada = (recalque_input - regressions[i][1]) / regressions[i][0]
+                    else:  # log
+                        carga_calculada = 10 ** ((math.log10(recalque_input) - regressions[i][1]) / regressions[i][0])
+                    
                     st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
-            except Exception as e:
-                st.error(f"Erro ao calcular a carga: {e}")
+                except Exception as e:
+                    st.error(f"Error calculating load: {e}")
 
     for interseccao in interseccoes[1:-1]:
         plt.axvline(x=interseccao, color='gray', linestyle='--')
