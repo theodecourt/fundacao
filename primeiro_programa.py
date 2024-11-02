@@ -166,9 +166,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):',
                 value=recalque_critico, format="%.2f", key=f'recalque_{i}')
 
-            # Cálculo da carga com o recalque informado
-            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
-            st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
+            if st.button(f'Calcular Carga para Recalque {num_romanos[i+1]}'):
+                carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
+                st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
 
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
@@ -176,13 +176,14 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
-            
+
             recalque_input = st.number_input(
                 f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):',
                 value=recalque_critico, format="%.2f", key=f'recalque_{i}')
 
-            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
-            st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
+            if st.button(f'Calculate Load for Settlement {num_romanos[i+1]}'):
+                carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
+                st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
 
     for interseccao in interseccoes[1:-1]:
         plt.axvline(x=interseccao, color='gray', linestyle='--')
