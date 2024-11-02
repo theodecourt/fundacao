@@ -85,7 +85,7 @@ def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
         carga = fsolve(func_carga_log, x0=1)[0]
     return carga
 
-def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
+def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, recalque_usuario):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
 
@@ -162,13 +162,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
             
-            recalque_input = st.number_input(
-                f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):',
-                value=recalque_critico, format="%.2f", key=f'recalque_{i}')
-
-            if st.button(f'Calcular Carga para Recalque {num_romanos[i+1]}'):
-                carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
-                st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
+            # Cálculo da carga com o recalque informado
+            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_usuario)
+            st.write(f'Para um recalque de {recalque_usuario:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
 
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
@@ -176,14 +172,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
-
-            recalque_input = st.number_input(
-                f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):',
-                value=recalque_critico, format="%.2f", key=f'recalque_{i}')
-
-            if st.button(f'Calculate Load for Settlement {num_romanos[i+1]}'):
-                carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
-                st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
+            
+            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_usuario)
+            st.write(f'For a settlement of {recalque_usuario:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
 
     for interseccao in interseccoes[1:-1]:
         plt.axvline(x=interseccao, color='gray', linestyle='--')
@@ -242,8 +233,11 @@ def primeiro_programa(idioma):
             tipo_regressao = st.selectbox(f'Tipo de regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Regression type {num_romanos[i+1]}:', ['linear', 'log'], index=0)
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
 
-        if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
-            calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
+        # Entrada para o recalque informado pelo usuário
+        recalque_usuario = st.number_input('Informe o recalque (mm):', value=0.1 * diametro_estaca, format="%.2f")
+
+        # Recalcular tudo quando o recalque é modificado
+        calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, recalque_usuario)
 
 
 
