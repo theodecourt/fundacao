@@ -78,9 +78,11 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
 
 def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
     if tipo_regressao == 'linear':
-        carga = reg[0] * recalque + reg[1]
+        carga = reg[1] / ((1 / recalque) - reg[0])
     else:  # log
-        carga = 10 ** (reg[0] * math.log10(recalque) + reg[1])
+        def func_carga_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque)
+        carga = fsolve(func_carga_log, x0=1)[0]
     return carga
 
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
@@ -160,7 +162,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
             
-            # Caixa de entrada para recalque inicializado com 0.1 * diametro_estaca
             recalque_input = st.number_input(
                 f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):',
                 value=recalque_critico, format="%.2f", key=f'recalque_{i}')
