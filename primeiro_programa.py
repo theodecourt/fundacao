@@ -91,15 +91,16 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     return interseccao
 
-def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
-    if tipo_regressao == 'linear':
-        carga = (recalque - reg[1]) / reg[0]
-    else:  # log
-        carga = 10 ** ((math.log10(recalque) - reg[1]) / reg[0])
-    return carga
-
 def calcular_quc(reg, tipo_regressao, recalque_critico):
-    return calcular_carga_para_recalque(reg, tipo_regressao, recalque_critico)
+    if tipo_regressao == 'linear':
+        a = reg[1]
+        b = reg[0]
+        quc = a / ((1 / recalque_critico) - b)
+    else:  # log
+        def func_quc_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque_critico)
+        quc = fsolve(func_quc_log, x0=1)[0]
+    return quc
 
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
     x0 = tabela['Carga']
@@ -177,10 +178,10 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
-            recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f", step=0.1)
+            recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
 
-            if recalque_input > 0:  # Garantir que o recalque é maior que zero
-                carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
+            if recalque_input > 0:
+                carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
                 st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
 
         else:
@@ -189,10 +190,10 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
-            recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f", step=0.1)
+            recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
 
             if recalque_input > 0:
-                carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
+                carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
                 st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
 
     for interseccao in interseccoes[1:-1]:
