@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import math
 from scipy.optimize import fsolve
 import streamlit as st
-import io
 
 num_romanos = {1: 'I', 2: 'II', 3: 'III'}
 
@@ -21,31 +20,6 @@ def criar_tabela_exemplo(idioma):
             "Settlement (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
         }
     return pd.DataFrame(dados)
-
-def botao_download_exemplo(idioma):
-    tabela_exemplo = criar_tabela_exemplo(idioma)
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        tabela_exemplo.to_excel(writer, index=False, sheet_name='Exemplo')
-    output.seek(0)
-    st.markdown(
-        """
-        <style>
-        .stDownloadButton button {
-            background-color: #FFC300;
-            color: black;
-            font-weight: bold;
-        }
-        .stDownloadButton button:hover {
-            background-color: #FFB000;
-            color: black;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-    label = "Baixando exemplo" if idioma == "Português" else "Downloading example"
-    file_name = "exemplo.xlsx" if idioma == "Português" else "example.xlsx"
-    st.download_button(label=label, data=output, file_name=file_name, mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 def carregar_tabela(idioma):
     if idioma == "Português":
@@ -101,6 +75,13 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
             return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque_critico)
         quc = fsolve(func_quc_log, x0=1)[0]
     return quc
+
+def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
+    if tipo_regressao == 'linear':
+        carga = reg[0] * recalque + reg[1]
+    else:  # log
+        carga = 10 ** (reg[0] * math.log10(recalque) + reg[1])
+    return carga
 
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
     x0 = tabela['Carga']
@@ -178,11 +159,15 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
-            recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
+            
+            # Caixa de entrada para recalque inicializado com 0.1 * diametro_estaca
+            recalque_input = st.number_input(
+                f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):',
+                value=recalque_critico, format="%.2f", key=f'recalque_{i}')
 
-            if recalque_input > 0:
-                carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
-                st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
+            # Cálculo da carga com o recalque informado
+            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
+            st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
 
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
@@ -190,11 +175,13 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
-            recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', key=f'recalque_{i}', format="%.2f")
+            
+            recalque_input = st.number_input(
+                f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):',
+                value=recalque_critico, format="%.2f", key=f'recalque_{i}')
 
-            if recalque_input > 0:
-                carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
-                st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
+            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
+            st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
 
     for interseccao in interseccoes[1:-1]:
         plt.axvline(x=interseccao, color='gray', linestyle='--')
