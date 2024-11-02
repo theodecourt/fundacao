@@ -111,10 +111,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     
     regressions = []
     tipos = []
-    interseccoes = []
+    interseccoes = [tabela['Carga'].iloc[0]]  # Iniciando com o primeiro ponto de carga
     
     recalque_critico = 0.1 * diametro_estaca
 
+    # Calcular todas as regressões e interseções antecipadamente
     for i in range(num_regressoes):
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
         linear = tabela[lin_in-1:lin_fim]
@@ -130,21 +131,20 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         regressions.append(reg)
         tipos.append(tipo_regressao)
 
-        if i > 0:
-            interseccao = calcular_interseccao(regressions[i-1], reg, tipos[i-1], tipo_regressao)
-            interseccoes.append(interseccao[0])
-
+    # Calcular interseções entre pares de regressões consecutivas
+    for i in range(1, num_regressoes):
+        interseccao = calcular_interseccao(regressions[i-1], regressions[i], tipos[i-1], tipos[i])
+        interseccoes.append(interseccao[0])
+    interseccoes.append(tabela['Carga'].iloc[-1])  # Adicionando o último ponto de carga
+    
+    # Plotar as regressões utilizando as interseções calculadas
     for i in range(num_regressoes):
-        lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
-        linear = tabela[lin_in-1:lin_fim]
-        
         if tipo_regressao == 'linear':
-            x_inicio = linear['Carga'].min() if i == 0 else interseccoes[i-1]
-            x_fim = interseccoes[i] if i < len(interseccoes) else linear['Carga'].max()
+            x_inicio = interseccoes[i]
+            x_fim = interseccoes[i+1]
             x = np.linspace(x_inicio, x_fim, 100)
             predict = np.poly1d(regressions[i])
             y = predict(x)
-            corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
 
             if idioma == "Português":
                 equacao = f'rigidez (tf/mm) = {regressions[i][0]:.4f} * Carga (tf) + {regressions[i][1]:.4f}'
@@ -152,14 +152,18 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 equacao = f'stiffness (tf/mm) = {regressions[i][0]:.4f} * Load (tf) + {regressions[i][1]:.4f}'
 
         else:  # log
-            x_inicio = linear['Carga'].min() if i == 0 else interseccoes[i-1]
-            x_fim = interseccoes[i] if i < len(interseccoes) else linear['Carga'].max()
-            x = np.linspace(0.1, x_fim, 100)
+            x_inicio = interseccoes[i]
+            x_fim = interseccoes[i+1]
+            x = np.linspace(x_inicio, x_fim, 100)
             predict = np.poly1d(regressions[i])
             y = 10**predict(np.log10(x))
-            corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
-            equacao = f'log(rigidez) = {regressions[i][0]:.4f} * log(Carga) + {regressions[i][1]:.4f}'
+
+            if idioma == "Português":
+                equacao = f'log(rigidez) = {regressions[i][0]:.4f} * log(Carga) + {regressions[i][1]:.4f}'
+            else:
+                equacao = f'log(stiffness) = {regressions[i][0]:.4f} * log(Load) + {regressions[i][1]:.4f}'
         
+        corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
         corr = corr_matrix[0, 1]
         R_sq = corr**2
 
@@ -180,9 +184,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
 
-    if len(interseccoes) > 0:
-        for interseccao in interseccoes:
-            plt.axvline(x=interseccao, color='gray', linestyle='--')
+    for interseccao in interseccoes[1:-1]:
+        plt.axvline(x=interseccao, color='gray', linestyle='--')
 
     if idioma == "Português":
         plt.xlabel('Carga')
@@ -240,6 +243,7 @@ def primeiro_programa(idioma):
 
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
             calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
+
 
 
 
