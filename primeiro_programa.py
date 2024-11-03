@@ -102,6 +102,21 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
         quc = fsolve(func_quc_log, x0=1)[0]
     return quc
 
+def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
+    if tipo_regressao == 'linear':
+        return reg[0] * recalque + reg[1]
+    else:  # log
+        return 10**(reg[0] * math.log10(recalque) + reg[1])
+
+def calcular_recalque_para_carga(reg, tipo_regressao, carga):
+    if tipo_regressao == 'linear':
+        return (carga - reg[1]) / reg[0]
+    else:  # log
+        def func_recalque_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - carga
+        recalque = fsolve(func_recalque_log, x0=1)[0]
+        return recalque
+
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
@@ -190,6 +205,20 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     plt.legend(loc='best')
     st.pyplot(plt)
+
+    # Adicionando campos para cálculo de carga e recalque
+    recalque_input = st.number_input('Informe o recalque (mm):', format="%.2f", key='recalque')
+    carga_input = st.number_input('Informe a carga (tf):', format="%.2f", key='carga')
+
+    if st.button('Calcular'):
+        for i in range(num_regressoes):
+            st.markdown(f"**Regressão {num_romanos[i+1]}**")
+            if recalque_input > 0:
+                carga_calculada = calcular_carga_para_recalque(regressions[i], tipos[i], recalque_input)
+                st.write(f'Para recalque {recalque_input:.2f} mm, a carga é {carga_calculada:.2f} tf.')
+            if carga_input > 0:
+                recalque_calculado = calcular_recalque_para_carga(regressions[i], tipos[i], carga_input)
+                st.write(f'Para carga {carga_input:.2f} tf, o recalque é {recalque_calculado:.2f} mm.')
 
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
