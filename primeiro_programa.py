@@ -102,6 +102,21 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
         quc = fsolve(func_quc_log, x0=1)[0]
     return quc
 
+def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
+    if tipo_regressao == 'linear':
+        return reg[0] * recalque + reg[1]
+    else:  # log
+        return 10**(reg[0] * math.log10(recalque) + reg[1])
+
+def calcular_recalque_para_carga(reg, tipo_regressao, carga):
+    if tipo_regressao == 'linear':
+        return (carga - reg[1]) / reg[0]
+    else:  # log
+        def func_recalque_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - carga
+        recalque = fsolve(func_recalque_log, x0=1)[0]
+        return recalque
+
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
@@ -160,19 +175,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
         
-        if idioma == "Português":
-            st.write(f'Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}')
-            st.write('Tipo de regressão:', tipo_regressao.capitalize())
-            st.write('Equação da regressão:', equacao)
-            st.write('R²:', R_sq)
-            st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
-
-        else:
-            st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
-            st.write('Regression type:', tipo_regressao.capitalize())
-            st.write('Regression equation:', equacao)
-            st.write('R²:', R_sq)
-            st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
+        st.write(f'Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}')
+        st.write('Tipo de regressão:', tipo_regressao.capitalize())
+        st.write('Equação da regressão:', equacao)
+        st.write('R²:', R_sq)
+        st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
 
     if interseccoes:
         for interseccao in interseccoes:
@@ -190,6 +197,20 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     plt.legend(loc='best')
     st.pyplot(plt)
+
+    # Adicionando campos para cálculo de carga e recalque
+    recalque_input = st.number_input('Informe o recalque (mm):', format="%.2f")
+    carga_input = st.number_input('Informe a carga (tf):', format="%.2f")
+
+    if recalque_input > 0:
+        for i in range(num_regressoes):
+            carga_calculada = calcular_carga_para_recalque(regressions[i], tipos[i], recalque_input)
+            st.write(f'Para a regressão {num_romanos[i+1]}, a carga calculada para um recalque de {recalque_input:.2f} mm é {carga_calculada:.2f} tf.')
+    
+    if carga_input > 0:
+        for i in range(num_regressoes):
+            recalque_calculado = calcular_recalque_para_carga(regressions[i], tipos[i], carga_input)
+            st.write(f'Para a regressão {num_romanos[i+1]}, o recalque calculado para uma carga de {carga_input:.2f} tf é {recalque_calculado:.2f} mm.')
 
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
