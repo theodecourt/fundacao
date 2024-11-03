@@ -38,8 +38,6 @@ def carregar_tabela(idioma):
             elif uploaded_file.name.endswith('.xlsx'):
                 return pd.read_excel(uploaded_file)
         st.title('Downloading example')
-    
-    botao_download_exemplo(idioma)
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
@@ -85,6 +83,15 @@ def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
         carga = fsolve(func_carga_log, x0=1)[0]
     return carga
 
+def calcular_recalque_para_carga(reg, tipo_regressao, carga):
+    if tipo_regressao == 'linear':
+        recalque = (carga - reg[1]) / reg[0]
+    else:  # log
+        def func_recalque_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - carga
+        recalque = fsolve(func_recalque_log, x0=1)[0]
+    return recalque
+
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, recalque_usuario):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
@@ -106,18 +113,27 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         if tipo_regressao == 'linear':
             reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
             predict = np.poly1d(reg)
+            y_fit = predict(linear['Carga'])
+            ss_res = np.sum((linear['rigidez'] - y_fit) ** 2)
+            ss_tot = np.sum((linear['rigidez'] - np.mean(linear['rigidez'])) ** 2)
+            r_squared = 1 - (ss_res / ss_tot)
 
         else:  # log
             reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
             predict = np.poly1d(reg)
+            y_fit = 10**predict(linear['logQ'])
+            ss_res = np.sum((linear['rigidez'] - y_fit) ** 2)
+            ss_tot = np.sum((linear['rigidez'] - np.mean(linear['rigidez'])) ** 2)
+            r_squared = 1 - (ss_res / ss_tot)
 
         regressions.append(reg)
         tipos.append(tipo_regressao)
 
-    # Calcular interseções entre pares de regressões consecutivas
-    for i in range(1, num_regressoes):
-        interseccao = calcular_interseccao(regressions[i-1], regressions[i], tipos[i-1], tipos[i])
-        interseccoes.append(interseccao[0])
+        # Calcular interseções entre pares de regressões consecutivas
+        if i > 0:
+            interseccao = calcular_interseccao(regressions[i-1], reg, tipos[i-1], tipo_regressao)
+            interseccoes.append(interseccao[0])
+    
     interseccoes.append(tabela['Carga'].iloc[-1])  # Adicionando o último ponto de carga
     
     # Plotar as regressões utilizando as interseções calculadas
@@ -147,10 +163,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             else:
                 equacao = f'log(stiffness) = {regressions[i][0]:.4f} * log(Load) + {regressions[i][1]:.4f}'
         
-        corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
-        corr = corr_matrix[0, 1]
-        R_sq = corr**2
-
         quc = calcular_quc(regressions[i], tipo_regressao, recalque_critico)
 
         plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
@@ -159,22 +171,31 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write(f'Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}')
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
             st.write('Equação da regressão:', equacao)
-            st.write('R²:', R_sq)
+            st.write('R²:', r_squared)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
             
             # Cálculo da carga com o recalque informado
             carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_usuario)
             st.write(f'Para um recalque de {recalque_usuario:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
 
+            # Campo adicional: cálculo do recalque com base na carga
+            carga_para_recalque = st.number_input(f'Informe a carga para calcular o recalque na regressão {num_romanos[i+1]} (tf):', format="%.2f", key=f'carga_{i}')
+            recalque_calculado = calcular_recalque_para_carga(regressions[i], tipo_regressao, carga_para_recalque)
+            st.write(f'Para uma carga de {carga_para_recalque:.2f} tf, o recalque calculado é de {recalque_calculado:.2f} mm.')
+
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
             st.write('Regression equation:', equacao)
-            st.write('R²:', R_sq)
+            st.write('R²:', r_squared)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
             
             carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_usuario)
             st.write(f'For a settlement of {recalque_usuario:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
+
+            carga_para_recalque = st.number_input(f'Enter load to calculate settlement for regression {num_romanos[i+1]} (tf):', format="%.2f", key=f'carga_{i}')
+            recalque_calculado = calcular_recalque_para_carga(regressions[i], tipo_regressao, carga_para_recalque)
+            st.write(f'For a load of {carga_para_recalque:.2f} tf, the calculated settlement is {recalque_calculado:.2f} mm.')
 
     for interseccao in interseccoes[1:-1]:
         plt.axvline(x=interseccao, color='gray', linestyle='--')
