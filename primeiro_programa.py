@@ -102,24 +102,6 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
         quc = fsolve(func_quc_log, x0=1)[0]
     return quc
 
-def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
-    if tipo_regressao == 'linear':
-        carga = reg[1] / ((1 / recalque) - reg[0])
-    else:  # log
-        def func_carga_log(x):
-            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque)
-        carga = fsolve(func_carga_log, x0=1)[0]
-    return carga
-
-def calcular_recalque_para_carga(reg, tipo_regressao, carga):
-    if tipo_regressao == 'linear':
-        recalque = (carga - reg[1]) / reg[0]
-    else:  # log
-        def func_recalque_log(x):
-            return 10**(reg[0] * np.log10(x) + reg[1]) - carga
-        recalque = fsolve(func_recalque_log, x0=1)[0]
-    return recalque
-
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
@@ -191,31 +173,12 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
-
-            # Campo para calcular a carga a partir do recalque
-            recalque_input = st.number_input(f'Informe o recalque para calcular a carga na regressão {num_romanos[i+1]} (mm):', value=0.1 * diametro_estaca, format="%.2f", key=f'recalque_{i}')
-            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
-            st.write(f'Para um recalque de {recalque_input:.2f} mm, a carga calculada é de {carga_calculada:.2f} tf.')
-
-            # Campo para calcular o recalque a partir da carga
-            carga_input = st.number_input(f'Informe a carga para calcular o recalque na regressão {num_romanos[i+1]} (tf):', format="%.2f", key=f'carga_{i}')
-            recalque_calculado = calcular_recalque_para_carga(regressions[i], tipo_regressao, carga_input)
-            st.write(f'Para uma carga de {carga_input:.2f} tf, o recalque calculado é de {recalque_calculado:.2f} mm.')
-
         else:
             st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
-
-            recalque_input = st.number_input(f'Enter settlement to calculate load for regression {num_romanos[i+1]} (mm):', value=0.1 * diametro_estaca, format="%.2f", key=f'recalque_{i}')
-            carga_calculada = calcular_carga_para_recalque(regressions[i], tipo_regressao, recalque_input)
-            st.write(f'For a settlement of {recalque_input:.2f} mm, the calculated load is {carga_calculada:.2f} tf.')
-
-            carga_input = st.number_input(f'Enter load to calculate settlement for regression {num_romanos[i+1]} (tf):', format="%.2f", key=f'carga_{i}')
-            recalque_calculado = calcular_recalque_para_carga(regressions[i], tipo_regressao, carga_input)
-            st.write(f'For a load of {carga_input:.2f} tf, the calculated settlement is {recalque_calculado:.2f} mm.')
 
     if len(interseccoes) > 0:
         for interseccao in interseccoes:
@@ -242,10 +205,7 @@ def primeiro_programa(idioma):
             if "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
                 tabela = tabela.rename(columns={"Load (tf)": "Carga", "Settlement (mm)": "Recalque"})
         
-        diametro_estaca = st.number_input(
-            'Qual é o diâmetro da estaca? (mm)' if idioma == "Português" else 'What is the pile diameter? (mm)', 
-            min_value=0.01, format="%.2f"
-        )
+        diametro_estaca = st.number_input('Qual é o diâmetro da estaca? (mm)' if idioma == "Português" else 'What is the pile diameter? (mm)', min_value=0.01, format="%.2f")
 
         fig = px.scatter(tabela, x="Carga", y="Recalque")
         fig.update_yaxes(autorange="reversed")
@@ -269,33 +229,17 @@ def primeiro_programa(idioma):
         tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
         tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
 
-        num_regressoes = st.selectbox(
-            'Quantas regressões:' if idioma == "Português" else 'How many regressions?', 
-            [1, 2, 3], index=0
-        )
+        num_regressoes = st.selectbox('Quantas regressões:' if idioma == "Português" else 'How many regressions?', [1, 2, 3], index=0)
 
         pontos_tipos = []
         for i in range(num_regressoes):
-            lin_in = st.number_input(
-                f'Ponto inicial da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Starting point of the regression {num_romanos[i+1]}:', 
-                min_value=1, max_value=len(tabela), value=1
-            )
-            lin_fim = st.number_input(
-                f'Ponto final da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Ending point of the regression {num_romanos[i+1]}:', 
-                min_value=lin_in, max_value=len(tabela), value=len(tabela)
-            )
-            tipo_regressao = st.selectbox(
-                f'Tipo de regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Regression type {num_romanos[i+1]}:', 
-                ['linear', 'log'], index=0
-            )
-            pontos_tipos.append((pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+            lin_in = st.number_input(f'Ponto inicial da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Starting point of the regression {num_romanos[i+1]}:', min_value=1, max_value=len(tabela), value=1)
+            lin_fim = st.number_input(f'Ponto final da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Ending point of the regression {num_romanos[i+1]}:', min_value=lin_in, max_value=len(tabela), value=len(tabela))
+            tipo_regressao = st.selectbox(f'Tipo de regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Regression type {num_romanos[i+1]}:', ['linear', 'log'], index=0)
+            pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
 
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
             calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
-
-# Função principal para iniciar o programa
-idioma = 'Português'  # ou 'English'
-primeiro_programa(idioma)
 
 
 
