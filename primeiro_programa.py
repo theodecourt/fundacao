@@ -91,18 +91,18 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     return interseccao
 
-def calcular_quc(reg, tipo_regressao, recalque_critico):
+def calcular_quc(reg, tipo_regressao, valor_critico):
     if tipo_regressao == 'linear':
         a = reg[1]
         b = reg[0]
-        quc = a / ((1 / recalque_critico) - b)
+        quc = a / ((1 / valor_critico) - b)
     else:  # log
         def func_quc_log(x):
-            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque_critico)
+            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / valor_critico)
         quc = fsolve(func_quc_log, x0=1)[0]
     return quc
 
-def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
+def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
 
@@ -174,7 +174,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
 
-        # Calcular carga e recalque com base na regressão
+        # Calcular e exibir carga e recalque com base na regressão
         if recalque_input > 0:
             carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
             st.write(f"A carga para o recalque {recalque_input:.2f} mm é {carga_calculada:.2f} tf.")
@@ -262,7 +262,7 @@ def primeiro_programa(idioma):
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
         
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
-            calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
+            calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input)
 
 idioma = 'Português'  # ou 'English'
 primeiro_programa(idioma)
