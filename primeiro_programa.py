@@ -104,13 +104,13 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
 
 def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
     if tipo_regressao == 'linear':
-        return reg[0] * recalque + reg[1]
+        return (recalque - reg[1]) / reg[0]
     else:  # log
         return 10**(reg[0] * math.log10(recalque) + reg[1])
 
 def calcular_recalque_para_carga(reg, tipo_regressao, carga):
     if tipo_regressao == 'linear':
-        return (carga - reg[1]) / reg[0]
+        return reg[0] * carga + reg[1]
     else:  # log
         def func_recalque_log(x):
             return 10**(reg[0] * np.log10(x) + reg[1]) - carga
@@ -206,10 +206,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     plt.legend(loc='best')
     st.pyplot(plt)
 
-    # Adicionando campos para cálculo de carga e recalque
+    # Captura os valores de carga e recalque
     recalque_input = st.number_input('Informe o recalque (mm):', format="%.2f", key='recalque')
     carga_input = st.number_input('Informe a carga (tf):', format="%.2f", key='carga')
 
+    # Botão para executar o cálculo
     if st.button('Calcular'):
         for i in range(num_regressoes):
             st.markdown(f"**Regressão {num_romanos[i+1]}**")
