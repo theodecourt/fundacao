@@ -104,14 +104,17 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
 
 def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
     if tipo_regressao == 'linear':
-        return reg[0] * recalque + reg[1]
-    else:  # log
-        return 10**(reg[0] * math.log10(recalque) + reg[1])
+        return reg[1] / ((1 / recalque) - reg[0])
+    else:
+        def func_carga_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / recalque)
+        carga = fsolve(func_carga_log, x0=1)[0]
+        return carga
 
 def calcular_recalque_para_carga(reg, tipo_regressao, carga):
     if tipo_regressao == 'linear':
         return (carga - reg[1]) / reg[0]
-    else:  # log
+    else:
         def func_recalque_log(x):
             return 10**(reg[0] * np.log10(x) + reg[1]) - carga
         recalque = fsolve(func_recalque_log, x0=1)[0]
