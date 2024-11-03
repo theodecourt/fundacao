@@ -207,6 +207,20 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     plt.legend(loc='best')
     st.pyplot(plt)
+    
+    return regressions, tipos
+
+def realizar_calculos_independentes(recalque_input, carga_input, regressions, tipos):
+    for i, (reg, tipo_regressao) in enumerate(zip(regressions, tipos)):
+        # Calcular a carga para o recalque informado usando a regressão atual
+        if recalque_input > 0:
+            carga_calculada = calcular_carga_para_recalque(reg, tipo_regressao, recalque_input)
+            st.write(f"Para a Regressão {num_romanos[i+1]}, dado o recalque {recalque_input:.2f} mm, a carga é {carga_calculada:.2f} tf.")
+
+        # Calcular o recalque para a carga informada usando a regressão atual
+        if carga_input > 0:
+            recalque_calculado = calcular_recalque_para_carga(reg, tipo_regressao, carga_input)
+            st.write(f"Para a Regressão {num_romanos[i+1]}, dada a carga {carga_input:.2f} tf, o recalque é {recalque_calculado:.2f} mm.")
 
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
@@ -266,20 +280,14 @@ def primeiro_programa(idioma):
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
         
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
-            calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
+            regressions, tipos = calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
 
-        # Seção para cálculos independentes
-        recalque_input = st.number_input('Informe o recalque para cálculo independente (mm):', format="%.2f")
-        carga_input = st.number_input('Informe a carga para cálculo independente (tf):', format="%.2f")
+            # Seção para cálculos independentes
+            recalque_input = st.number_input('Informe o recalque para cálculo independente (mm):', format="%.2f")
+            carga_input = st.number_input('Informe a carga para cálculo independente (tf):', format="%.2f")
 
-        # Efetuar cálculos independentes
-        if recalque_input > 0:
-            resultado_recalque = recalque_input * 2  # Exemplo: substitua pela lógica desejada
-            st.write(f"Resultado independente para recalque: {resultado_recalque:.2f} mm")
-
-        if carga_input > 0:
-            resultado_carga = carga_input * 2  # Exemplo: substitua pela lógica desejada
-            st.write(f"Resultado independente para carga: {resultado_carga:.2f} tf")
+            # Efetuar cálculos independentes
+            realizar_calculos_independentes(recalque_input, carga_input, regressions, tipos)
 
 idioma = 'Português'  # ou 'English'
 primeiro_programa(idioma)
