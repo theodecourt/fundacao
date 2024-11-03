@@ -202,15 +202,15 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     recalque_input = st.number_input('Informe o recalque (mm):', format="%.2f")
     carga_input = st.number_input('Informe a carga (tf):', format="%.2f")
 
-    if recalque_input > 0:
+    if st.button('Calcular Resultados'):
         for i in range(num_regressoes):
-            carga_calculada = calcular_carga_para_recalque(regressions[i], tipos[i], recalque_input)
-            st.write(f'Para a regressão {num_romanos[i+1]}, a carga calculada para um recalque de {recalque_input:.2f} mm é {carga_calculada:.2f} tf.')
-    
-    if carga_input > 0:
-        for i in range(num_regressoes):
-            recalque_calculado = calcular_recalque_para_carga(regressions[i], tipos[i], carga_input)
-            st.write(f'Para a regressão {num_romanos[i+1]}, o recalque calculado para uma carga de {carga_input:.2f} tf é {recalque_calculado:.2f} mm.')
+            st.markdown(f"**Regressão {num_romanos[i+1]}**")
+            if recalque_input > 0:
+                carga_calculada = calcular_carga_para_recalque(regressions[i], tipos[i], recalque_input)
+                st.write(f'Para recalque {recalque_input:.2f} mm, a carga é {carga_calculada:.2f} tf.')
+            if carga_input > 0:
+                recalque_calculado = calcular_recalque_para_carga(regressions[i], tipos[i], carga_input)
+                st.write(f'Para carga {carga_input:.2f} tf, o recalque é {recalque_calculado:.2f} mm.')
 
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
