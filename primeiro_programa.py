@@ -276,4 +276,3 @@ idioma = 'Português'  # ou 'English'
 primeiro_programa(idioma)
 
 
-
