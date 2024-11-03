@@ -103,17 +103,17 @@ def calcular_quc(reg, tipo_regressao, recalque_critico):
     return quc
 
 def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
-    if tipo_regressao == 'linear':
-        carga = (recalque * reg[0] + reg[1])
-    else:
-        carga = 10**(reg[0] * np.log10(recalque) + reg[1])
-    return carga
+    return calcular_quc(reg, tipo_regressao, recalque)
 
 def calcular_recalque_para_carga(reg, tipo_regressao, carga):
     if tipo_regressao == 'linear':
-        recalque = (carga - reg[1]) / reg[0]
-    else:
-        recalque = 10**((np.log10(carga) - reg[1]) / reg[0])
+        def func_recalque(x):
+            return reg[0] * x + reg[1] - carga
+        recalque = fsolve(func_recalque, x0=1)[0]
+    else:  # log
+        def func_recalque_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - carga
+        recalque = fsolve(func_recalque_log, x0=1)[0]
     return recalque
 
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma):
@@ -131,7 +131,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     for i in range(num_regressoes):
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
-        linear = tabela[lin_in-1:lin_fim]
+        linear = tabela.iloc[lin_in-1:lin_fim]  # Ajusta a seleção dos dados
         
         if tipo_regressao == 'linear':
             reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
@@ -147,11 +147,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     for i in range(num_regressoes):
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
-        linear = tabela[lin_in-1:lin_fim]
+        linear = tabela.iloc[lin_in-1:lin_fim]  # Ajusta a seleção dos dados
         
         if tipo_regressao == 'linear':
-            x_inicio = linear['Carga'].min() if i == 0 else interseccoes[i-1]
-            x_fim = interseccoes[i] if i < len(interseccoes) else linear['Carga'].max()
+            x_inicio = linear['Carga'].iloc[0] if i == 0 else interseccoes[i-1]
+            x_fim = linear['Carga'].iloc[-1] if i == num_regressoes-1 else interseccoes[i]
             x = np.linspace(x_inicio, x_fim, 100)
             predict = np.poly1d(regressions[i])
             y = predict(x)
@@ -163,9 +163,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 equacao = f'stiffness (tf/mm) = {regressions[i][0]:.4f} * Load (tf) + {regressions[i][1]:.4f}'
 
         else:  # log
-            x_inicio = linear['Carga'].min() if i == 0 else interseccoes[i-1]
-            x_fim = interseccoes[i] if i < len(interseccoes) else linear['Carga'].max()
-            x = np.linspace(0.1, x_fim, 100)
+            x_inicio = linear['Carga'].iloc[0] if i == 0 else interseccoes[i-1]
+            x_fim = linear['Carga'].iloc[-1] if i == num_regressoes-1 else interseccoes[i]
+            x = np.linspace(x_inicio, x_fim, 100)
             predict = np.poly1d(regressions[i])
             y = 10**predict(np.log10(x))
             corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
@@ -176,7 +176,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         quc = calcular_quc(regressions[i], tipo_regressao, recalque_critico)
 
-        plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
+        plt.plot(x, y, colors[i], label=f'Regressão {num_romanos[i+1]}')
         
         if idioma == "Português":
             st.write(f'Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}')
@@ -210,12 +210,12 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     return regressions, tipos
 
 def realizar_calculos_independentes(carga_input, recalque_input, regressions, tipos):
-    if carga_input:
+    if carga_input > 0:
         for i, (reg, tipo_regressao) in enumerate(zip(regressions, tipos)):
             recalque = calcular_recalque_para_carga(reg, tipo_regressao, carga_input)
             st.write(f"Para a Regressão {num_romanos[i+1]}, dada a carga {carga_input:.2f} tf, o recalque é {recalque:.2f} mm.")
 
-    if recalque_input:
+    if recalque_input > 0:
         for i, (reg, tipo_regressao) in enumerate(zip(regressions, tipos)):
             carga = calcular_carga_para_recalque(reg, tipo_regressao, recalque_input)
             st.write(f"Para a Regressão {num_romanos[i+1]}, dado o recalque {recalque_input:.2f} mm, a carga é {carga:.2f} tf.")
@@ -234,7 +234,6 @@ def primeiro_programa(idioma):
             min_value=0.01, format="%.2f"
         )
 
-        # Inputs para cálculos independentes
         carga_input = st.number_input('Informe a carga (tf):', format="%.2f", min_value=0.0)
         recalque_input = st.number_input('Informe o recalque (mm):', format="%.2f", min_value=0.0)
 
