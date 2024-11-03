@@ -127,8 +127,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         # Calcula e define a cor de acordo com a regressão
         cor_texto = "blue" if i == 0 else "red" if i == 1 else "green"
+        
         st.markdown(
-            f"<span style='color:{cor_texto}; font-weight:bold;'>Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}</span>",
+            f"<b style='color:{cor_texto};'>Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}</b>",
             unsafe_allow_html=True
         )
 
