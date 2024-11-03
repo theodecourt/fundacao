@@ -113,10 +113,13 @@ def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
 
 def calcular_recalque_para_carga(reg, tipo_regressao, carga):
     if tipo_regressao == 'linear':
-        return (carga - reg[1]) / reg[0]
+        # Rigidez = a + b * recalque -> recalque = (carga / rigidez)
+        rigidez = carga / ((carga - reg[1]) / reg[0])
+        return carga / rigidez
     else:
         def func_recalque_log(x):
-            return 10**(reg[0] * np.log10(x) + reg[1]) - carga
+            rigidez = 10**(reg[0] * np.log10(x) + reg[1])
+            return carga - (x / rigidez)
         recalque = fsolve(func_recalque_log, x0=1)[0]
         return recalque
 
