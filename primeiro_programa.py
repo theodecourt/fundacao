@@ -55,8 +55,6 @@ def carregar_tabela(idioma):
                 return pd.read_csv(uploaded_file, delimiter=';')
             elif uploaded_file.name.endswith('.xlsx'):
                 return pd.read_excel(uploaded_file)
-        st.title('Baixando exemplo')
-        botao_download_exemplo(idioma)
     else:
         uploaded_file = st.file_uploader("Choose the CSV or XLSX file", type=["csv", "xlsx"])
         if uploaded_file is not None:
@@ -64,8 +62,6 @@ def carregar_tabela(idioma):
                 return pd.read_csv(uploaded_file, delimiter=';')
             elif uploaded_file.name.endswith('.xlsx'):
                 return pd.read_excel(uploaded_file)
-        st.title('Downloading example')
-        botao_download_exemplo(idioma)
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
@@ -212,10 +208,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     plt.legend(loc='best')
     st.pyplot(plt)
 
-    # Adicionando um campo para ingresso de peso
-    peso_input = st.number_input('Digite o valor do peso:', format="%.2f")
-    st.write(f'Seu peso é {peso_input * 4:.2f}')
-
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
     if tabela is not None:
@@ -248,7 +240,6 @@ def primeiro_programa(idioma):
         )
         st.plotly_chart(fig2)
 
-        # Processamento das regressões
         tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
         tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
         tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
@@ -276,6 +267,19 @@ def primeiro_programa(idioma):
         
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
             calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma)
+
+        # Seção para cálculos independentes
+        recalque_input = st.number_input('Informe o recalque para cálculo independente (mm):', format="%.2f")
+        carga_input = st.number_input('Informe a carga para cálculo independente (tf):', format="%.2f")
+
+        # Efetuar cálculos independentes
+        if recalque_input > 0:
+            resultado_recalque = recalque_input * 2  # Exemplo: substitua pela lógica desejada
+            st.write(f"Resultado independente para recalque: {resultado_recalque:.2f} mm")
+
+        if carga_input > 0:
+            resultado_carga = carga_input * 2  # Exemplo: substitua pela lógica desejada
+            st.write(f"Resultado independente para carga: {resultado_carga:.2f} tf")
 
 idioma = 'Português'  # ou 'English'
 primeiro_programa(idioma)
