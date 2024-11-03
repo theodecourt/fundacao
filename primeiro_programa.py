@@ -113,9 +113,7 @@ def calcular_carga_para_recalque(reg, tipo_regressao, recalque):
 
 def calcular_recalque_para_carga(reg, tipo_regressao, carga):
     if tipo_regressao == 'linear':
-        # Calcular rigidez a partir da regressão
         rigidez = reg[0] * carga + reg[1]
-        # Calcular recalque usando a equação: recalque = carga / rigidez
         recalque = carga / rigidez
         return recalque
     else:
