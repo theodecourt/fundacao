@@ -174,6 +174,15 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
 
+        # Calcular carga e recalque com base na regressão
+        if recalque_input > 0:
+            carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
+            st.write(f"A carga para o recalque {recalque_input:.2f} mm é {carga_calculada:.2f} tf.")
+        
+        if carga_input > 0:
+            recalque_calculado = calcular_quc(regressions[i], tipo_regressao, carga_input)
+            st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
+
     if interseccoes:
         for interseccao in interseccoes:
             plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
@@ -204,6 +213,10 @@ def primeiro_programa(idioma):
             'Qual é o diâmetro da estaca? (mm)' if idioma == "Português" else 'What is the pile diameter? (mm)', 
             min_value=0.01, format="%.2f"
         )
+
+        # Inputs adicionais para carga e recalque
+        recalque_input = st.number_input('Quer calcular a carga para qual recalque? (mm)', format="%.2f", min_value=0.0)
+        carga_input = st.number_input('Quer estimar o recalque para qual carga? (tf)', format="%.2f", min_value=0.0)
 
         fig = px.scatter(tabela, x="Carga", y="Recalque")
         fig.update_yaxes(autorange="reversed")
