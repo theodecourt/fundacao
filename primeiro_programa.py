@@ -125,6 +125,13 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
         linear = tabela[lin_in-1:lin_fim]
 
+        # Calcula e define a cor de acordo com a regressão
+        cor_texto = "blue" if i == 0 else "red" if i == 1 else "green"
+        st.markdown(
+            f"<span style='color:{cor_texto}; font-weight:bold;'>Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}</span>",
+            unsafe_allow_html=True
+        )
+
         if tipo_regressao == 'linear':
             x_inicio = tabela['Carga'].iloc[lin_in-1] if i == 0 else interseccoes[i-1][0]
             x_fim = tabela['Carga'].iloc[lin_fim-1] if i == num_regressoes-1 else interseccoes[i][0]
@@ -151,14 +158,12 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
         
         if idioma == "Português":
-            st.write(f'Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}')
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
             st.write('Equação da regressão:', equacao)
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
 
         else:
-            st.write(f'Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}')
             st.write('Regression type:', tipo_regressao.capitalize())
             st.write('Regression equation:', equacao)
             st.write('R²:', R_sq)
@@ -176,9 +181,12 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
 
     if interseccoes:
-        for interseccao in interseccoes:
+        for idx, interseccao in enumerate(interseccoes):
+            st.markdown(
+                f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx+1]} e regressão {num_romanos[idx+2]}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
+                unsafe_allow_html=True
+            )
             plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
-            st.write(f'Interseção: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}')
 
     if idioma == "Português":
         plt.xlabel('Carga')
