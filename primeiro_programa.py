@@ -10,16 +10,13 @@ import io
 num_romanos = {1: 'I', 2: 'II', 3: 'III'}
 
 def criar_tabela_exemplo(idioma):
-    if idioma == "Português":
-        dados = {
-            "Carga (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
-            "Recalque (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
-        }
-    else:
-        dados = {
-            "Load (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
-            "Settlement (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
-        }
+    dados = {
+        "Carga (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+        "Recalque (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+    } if idioma == "Português" else {
+        "Load (tf)": [1200, 1125, 1050, 975, 900, 825, 750, 675, 600, 525, 450, 375, 300, 225, 150, 75],
+        "Settlement (mm)": [27.21, 24.55, 21.95, 19.35, 17.28, 14.72, 12.81, 11.03, 9.52, 8.30, 6.92, 5.19, 3.79, 2.48, 1.51, 0.66]
+    }
     return pd.DataFrame(dados)
 
 def botao_download_exemplo(idioma):
@@ -48,24 +45,17 @@ def botao_download_exemplo(idioma):
     st.download_button(label=label, data=output, file_name=file_name, mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 def carregar_tabela(idioma):
-    if idioma == "Português":
-        uploaded_file = st.file_uploader("Escolha o arquivo CSV ou XLSX", type=["csv", "xlsx"])
-        if uploaded_file is not None:
-            if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
-            elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
-        st.title('Baixando exemplo')
-        botao_download_exemplo(idioma)
-    else:
-        uploaded_file = st.file_uploader("Choose the CSV or XLSX file", type=["csv", "xlsx"])
-        if uploaded_file is not None:
-            if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
-            elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
-        st.title('Downloading example')
-        botao_download_exemplo(idioma)
+    uploaded_file = st.file_uploader(
+        "Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file", 
+        type=["csv", "xlsx"]
+    )
+    if uploaded_file:
+        if uploaded_file.name.endswith('.csv'):
+            return pd.read_csv(uploaded_file, delimiter=';')
+        elif uploaded_file.name.endswith('.xlsx'):
+            return pd.read_excel(uploaded_file)
+    botao_download_exemplo(idioma)
+    return None
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
@@ -112,7 +102,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     regressions = []
     tipos = []
     interseccoes = []
-    
+
     recalque_critico = 0.1 * diametro_estaca
 
     for i in range(num_regressoes):
@@ -180,7 +170,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write(f"A carga para o recalque {recalque_input:.2f} mm é {carga_calculada:.2f} tf.")
         
         if carga_input > 0:
-            recalque_calculado = calcular_quc(regressions[i], tipo_regressao, carga_input)
+            # Calcula a rigidez para a carga informada
+            rigidez = predict(carga_input) if tipo_regressao == 'linear' else 10**predict(np.log10(carga_input))
+            recalque_calculado = carga_input / rigidez
             st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
 
     if interseccoes:
