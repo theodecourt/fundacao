@@ -29,11 +29,13 @@ def set_background_and_text_color():
         unsafe_allow_html=True
     )
 
-# Chama a função para aplicar o CSS
-set_background_and_text_color()
+
 
 # Função para a página "Programas"
 def pagina_programas(idioma):
+
+    # Chama a função para aplicar o CSS
+    set_background_and_text_color() 
     if idioma == "Português":
         st.title('Programas de Luciano Décourt')
 
