@@ -106,7 +106,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     for i, (x, y) in enumerate(zip(x0, y0), start=1):
         plt.annotate(str(i), (x, y), textcoords="offset points", xytext=(0,5), ha='center')
 
-
     regressions = []
     tipos = []
     interseccoes = []
@@ -133,7 +132,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
         linear = tabela[lin_in-1:lin_fim]
 
-        # Calcula e define a cor de acordo com a regressão
+        # Define the color based on regression
         cor_texto = "blue" if i == 0 else "red" if i == 1 else "green"
         
         st.markdown(
@@ -164,7 +163,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         quc = calcular_quc(regressions[i], tipo_regressao, recalque_critico)
 
-        plt.plot(x, y, colors[i], label=f'Regressão {i+1}')
+        plt.plot(x, y, colors[i], label=f'Regressão {i+1}' if idioma == 'Português' else f'Regression {i+1}')
         
         if idioma == "Português":
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
@@ -178,14 +177,17 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
 
-        # Calcular e exibir carga e recalque com base na regressão
+        # Calculate and display load and settlement based on regression
         if recalque_input > 0:
             carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
             st.write(f"A carga para o recalque {recalque_input:.2f} mm é {carga_calculada:.2f} tf.")
         
         if carga_input > 0:
-            # Calcula a rigidez para a carga informada
-            rigidez = predict(carga_input) if tipo_regressao == 'linear' else 10**predict(np.log10(carga_input))
+            # Calculate stiffness for the given load
+            if tipo_regressao == 'linear':
+                rigidez = predict(carga_input)
+            else:
+                rigidez = 10**predict(np.log10(carga_input))
             recalque_calculado = carga_input / rigidez
             st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
 
@@ -195,15 +197,15 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx+1]} e regressão {num_romanos[idx+2]}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
                 unsafe_allow_html=True
             )
-            plt.plot(interseccao[0], interseccao[1], 'rx')  # Marca a interseção com um 'x' vermelho
+            plt.plot(interseccao[0], interseccao[1], 'rx')  # Mark the intersection with a red 'x'
 
     if idioma == "Português":
-        plt.xlabel('Carga')
-        plt.ylabel('Rigidez')
+        plt.xlabel('Carga (tf)')
+        plt.ylabel('Rigidez (tf/mm)')
         plt.title('Regressão de Carga x Rigidez')
     else:
-        plt.xlabel('Load')
-        plt.ylabel('Stiffness')
+        plt.xlabel('Load (tf)')
+        plt.ylabel('Stiffness (tf/mm)')
         plt.title('Load vs Stiffness Regression')
 
     plt.legend(loc='best')
@@ -257,23 +259,24 @@ def primeiro_programa(idioma):
         pontos_tipos = []
         for i in range(num_regressoes):
             lin_in = st.number_input(
-                f'Ponto inicial da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Starting point of the regression {num_romanos[i+1]}:', 
-                min_value=1, max_value=len(tabela), value=1
+                f'Ponto inicial da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Starting point of regression {num_romanos[i+1]}:', 
+                min_value=1, max_value=len(tabela), value=1,
+                key=f'lin_in_{i}'
             )
             lin_fim = st.number_input(
-                f'Ponto final da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Ending point of the regression {num_romanos[i+1]}:', 
-                min_value=lin_in, max_value=len(tabela), value=len(tabela)
+                f'Ponto final da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Ending point of regression {num_romanos[i+1]}:', 
+                min_value=lin_in, max_value=len(tabela), value=len(tabela),
+                key=f'lin_fim_{i}'
             )
             tipo_regressao = st.selectbox(
                 f'Tipo de regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Regression type {num_romanos[i+1]}:', 
-                ['linear', 'log'], index=0
+                ['linear', 'log'], index=0,
+                key=f'tipo_regressao_{i}'
             )
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
         
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
             calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input)
 
-idioma = 'Português'  # ou 'English'
+idioma = 'Português'  # or 'English'
 primeiro_programa(idioma)
-
-
