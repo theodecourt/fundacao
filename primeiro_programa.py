@@ -93,10 +93,13 @@ def calcular_quc(reg, tipo_regressao, valor_critico):
     return quc
 
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
+    # Sort the data by 'Carga' in ascending order
+    tabela = tabela.sort_values(by='Carga').reset_index(drop=True)
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
 
     colors = ['b', 'r', 'g']
+    plt.figure(figsize=(10, 6))
     plt.plot(x0, y0, 'go', label='Dados Originais' if idioma == 'Português' else 'Original Data')
 
     # Number the data points
