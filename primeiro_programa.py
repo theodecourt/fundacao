@@ -113,7 +113,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     recalque_critico = 0.1 * diametro_estaca
 
     for i in range(num_regressoes):
-        lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
+        lin_in = pontos_tipos[i][0]
+        lin_fim = pontos_tipos[i][1]
+        tipo_regressao = pontos_tipos[i][2]
         linear = tabela[lin_in-1:lin_fim]
         
         if tipo_regressao == 'linear':
@@ -129,7 +131,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             interseccoes.append(interseccao)
 
     for i in range(num_regressoes):
-        lin_in, lin_fim, tipo_regressao = pontos_tipos[i]
+        lin_in = pontos_tipos[i][0]
+        lin_fim = pontos_tipos[i][1]
+        tipo_regressao = pontos_tipos[i][2]
         linear = tabela[lin_in-1:lin_fim]
 
         # Define the color based on regression
@@ -225,7 +229,7 @@ def primeiro_programa(idioma):
             min_value=0.01, format="%.2f"
         )
 
-        # Inputs adicionais para carga e recalque
+        # Additional inputs for load and settlement
         recalque_input = st.number_input('Quer calcular a carga para qual recalque? (mm)', format="%.2f", min_value=0.0)
         carga_input = st.number_input('Quer estimar o recalque para qual carga? (tf)', format="%.2f", min_value=0.0)
 
@@ -258,21 +262,37 @@ def primeiro_programa(idioma):
 
         pontos_tipos = []
         for i in range(num_regressoes):
+            lin_in_key = f'lin_in_{i}'
+            lin_fim_key = f'lin_fim_{i}'
+            tipo_regressao_key = f'tipo_regressao_{i}'
+
+            # Retrieve previous values from session state or set defaults
+            lin_in_default = st.session_state.get(lin_in_key, 1)
+            lin_fim_default = st.session_state.get(lin_fim_key, len(tabela))
+            tipo_regressao_default = st.session_state.get(tipo_regressao_key, 'linear')
+
             lin_in = st.number_input(
                 f'Ponto inicial da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Starting point of regression {num_romanos[i+1]}:', 
-                min_value=1, max_value=len(tabela), value=1,
-                key=f'lin_in_{i}'
+                min_value=1, max_value=len(tabela), value=lin_in_default,
+                key=lin_in_key
             )
+
+            # Ensure lin_fim default is at least lin_in
+            if lin_fim_default < lin_in:
+                lin_fim_default = lin_in
+
             lin_fim = st.number_input(
                 f'Ponto final da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Ending point of regression {num_romanos[i+1]}:', 
-                min_value=lin_in, max_value=len(tabela), value=len(tabela),
-                key=f'lin_fim_{i}'
+                min_value=lin_in, max_value=len(tabela), value=lin_fim_default,
+                key=lin_fim_key
             )
+
             tipo_regressao = st.selectbox(
                 f'Tipo de regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Regression type {num_romanos[i+1]}:', 
                 ['linear', 'log'], index=0,
-                key=f'tipo_regressao_{i}'
+                key=tipo_regressao_key
             )
+
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
         
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
