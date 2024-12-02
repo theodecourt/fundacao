@@ -277,7 +277,7 @@ def primeiro_programa(idioma):
             yaxis_title="Rigidez (tf/mm)" if idioma == "Português" else "Stiffness (tf/mm)"
         )
 
-        # Adicionar numeração dos pontos usando a coluna 'numero'
+        # Adicionar numeração dos pontos no segundo gráfico
         for _, row in tabela.iterrows():
             fig2.add_annotation(
                 x=row["Carga"],
