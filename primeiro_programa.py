@@ -243,16 +243,13 @@ def primeiro_programa(idioma):
             yaxis_title="Recalque (mm)" if idioma == "Português" else "Settlement (mm)"
         )
 
-        # Adicionar numeração dos pontos
+        # Adicionar numeração dos pontos (sem seta e na ordem correta)
         for i, row in tabela.iterrows():
             fig.add_annotation(
                 x=row["Carga"],
                 y=row["Recalque"],
-                text=str(i + 1),
-                showarrow=True,
-                arrowhead=1,
-                ax=20,
-                ay=-20
+                text=str(i + 1),  # Numeração começa no primeiro ponto
+                showarrow=False  # Sem seta
             )
 
         st.plotly_chart(fig)
@@ -265,19 +262,17 @@ def primeiro_programa(idioma):
             yaxis_title="Rigidez (tf/mm)" if idioma == "Português" else "Stiffness (tf/mm)"
         )
 
-        # Adicionar numeração dos pontos
+        # Adicionar numeração dos pontos (sem seta e na ordem correta)
         for i, row in tabela.iterrows():
             fig2.add_annotation(
                 x=row["Carga"],
                 y=row["rigidez"],
-                text=str(i + 1),
-                showarrow=True,
-                arrowhead=1,
-                ax=20,
-                ay=-20
+                text=str(i + 1),  # Numeração começa no primeiro ponto
+                showarrow=False  # Sem seta
             )
 
         st.plotly_chart(fig2)
+
 
         tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
         tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
