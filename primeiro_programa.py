@@ -267,25 +267,42 @@ def primeiro_programa(idioma):
             tipo_regressao_key = f'tipo_regressao_{i}'
 
             # Retrieve previous values from session state or set defaults
-            lin_in_default = st.session_state.get(lin_in_key, 1)
-            lin_fim_default = st.session_state.get(lin_fim_key, len(tabela))
+            lin_in_default = st.session_state.get(lin_in_key, '1')
+            lin_fim_default = st.session_state.get(lin_fim_key, str(len(tabela)))
             tipo_regressao_default = st.session_state.get(tipo_regressao_key, 'linear')
 
-            lin_in = st.number_input(
+            lin_in_str = st.text_input(
                 f'Ponto inicial da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Starting point of regression {num_romanos[i+1]}:', 
-                min_value=1, max_value=len(tabela), value=lin_in_default,
+                value=lin_in_default,
                 key=lin_in_key
             )
 
-            # Ensure lin_fim default is at least lin_in
-            if lin_fim_default < lin_in:
-                lin_fim_default = lin_in
-
-            lin_fim = st.number_input(
+            lin_fim_str = st.text_input(
                 f'Ponto final da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Ending point of regression {num_romanos[i+1]}:', 
-                min_value=lin_in, max_value=len(tabela), value=lin_fim_default,
+                value=lin_fim_default,
                 key=lin_fim_key
             )
+
+            # Parse the input strings to integers, handle errors
+            try:
+                lin_in = int(lin_in_str)
+            except ValueError:
+                st.error(f"Entrada inválida para o ponto inicial da regressão {num_romanos[i+1]}. Por favor, insira um número inteiro.")
+                return
+
+            try:
+                lin_fim = int(lin_fim_str)
+            except ValueError:
+                st.error(f"Entrada inválida para o ponto final da regressão {num_romanos[i+1]}. Por favor, insira um número inteiro.")
+                return
+
+            # Check if lin_in and lin_fim are within valid range
+            if lin_in < 1 or lin_in > len(tabela):
+                st.error(f"Ponto inicial da regressão {num_romanos[i+1]} deve estar entre 1 e {len(tabela)}.")
+                return
+            if lin_fim < lin_in or lin_fim > len(tabela):
+                st.error(f"Ponto final da regressão {num_romanos[i+1]} deve estar entre {lin_in} e {len(tabela)}.")
+                return
 
             tipo_regressao = st.selectbox(
                 f'Tipo de regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Regression type {num_romanos[i+1]}:', 
