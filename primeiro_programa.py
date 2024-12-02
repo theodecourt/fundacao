@@ -98,7 +98,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
 
-    colors = ['b', 'r', 'g']
+    colors = ['blue', 'red', 'green']  # Use color names for consistency
     plt.figure(figsize=(10, 6))
     plt.plot(x0, y0, 'go', label='Dados Originais' if idioma == 'Português' else 'Original Data')
 
@@ -137,7 +137,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         linear = tabela[lin_in-1:lin_fim]
 
         # Define the color based on regression
-        cor_texto = "blue" if i == 0 else "red" if i == 1 else "green"
+        cor_texto = colors[i]  # Use the color from the colors list
         
         st.markdown(
             f"<b style='color:{cor_texto};'>Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}</b>",
@@ -167,17 +167,19 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         quc = calcular_quc(regressions[i], tipo_regressao, recalque_critico)
 
-        plt.plot(x, y, colors[i], label=f'Regressão {i+1}' if idioma == 'Português' else f'Regression {i+1}')
+        plt.plot(x, y, color=colors[i], label=f'Regressão {i+1}' if idioma == 'Português' else f'Regression {i+1}')
         
         if idioma == "Português":
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
-            st.markdown(f'**Equação da regressão:** {equacao}')
+            # Display the regression equation in the same color as the regression line
+            st.markdown(f'<span style="color:{cor_texto};"><strong>Equação da regressão:</strong> {equacao}</span>', unsafe_allow_html=True)  # Modified line
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
 
         else:
             st.write('Regression type:', tipo_regressao.capitalize())
-            st.markdown(f'**Regression equasion:** {equacao}')
+            # Display the regression equation in the same color as the regression line
+            st.markdown(f'<span style="color:{cor_texto};"><strong>Regression equation:</strong> {equacao}</span>', unsafe_allow_html=True)  # Modified line
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
 
@@ -214,7 +216,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     plt.legend(loc='best')
     st.pyplot(plt)
-
+    
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
     if tabela is not None:
