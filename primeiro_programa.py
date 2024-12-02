@@ -263,14 +263,34 @@ def primeiro_programa(idioma):
 
         st.plotly_chart(fig)
 
-        tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
-        fig2 = px.scatter(tabela, x="Carga", y="rigidez")
+        # Cálculo da rigidez usando operações vetorizadas
+        tabela['rigidez'] = tabela['Carga'] / tabela['Recalque']
+
+        # Segundo gráfico
+        fig2 = px.scatter(
+            tabela, x="Carga", y="rigidez",
+            labels={"Carga": "Carga (tf)", "rigidez": "Rigidez (tf/mm)"} if idioma == "Português" else {"Carga": "Load (tf)", "rigidez": "Stiffness (tf/mm)"}
+        )
         fig2.update_layout(
             title="Carga vs Rigidez" if idioma == "Português" else "Load vs Stiffness",
             xaxis_title="Carga (tf)" if idioma == "Português" else "Load (tf)",
             yaxis_title="Rigidez (tf/mm)" if idioma == "Português" else "Stiffness (tf/mm)"
         )
+
+        # Adicionar numeração dos pontos usando a coluna 'numero'
+        for _, row in tabela.iterrows():
+            fig2.add_annotation(
+                x=row["Carga"],
+                y=row["rigidez"],
+                text=str(row['numero']),
+                showarrow=True,
+                arrowhead=1,
+                ax=20,
+                ay=-20
+            )
+
         st.plotly_chart(fig2)
+
 
         tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
         tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
