@@ -236,6 +236,7 @@ def primeiro_programa(idioma):
         carga_input = st.number_input('Quer estimar o recalque para qual carga? (tf)', format="%.2f", min_value=0.0)
 
         tabela = tabela.sort_values(by="Carga").reset_index(drop=True)
+
         # Primeiro gráfico
         fig = px.scatter(
             tabela, x="Carga", y="Recalque",
