@@ -254,6 +254,7 @@ def primeiro_programa(idioma):
 
         st.plotly_chart(fig)
 
+
         tabela['rigidez'] = tabela.apply(lambda row: row.Carga / row.Recalque, axis=1)
         fig2 = px.scatter(tabela, x="Carga", y="rigidez", labels={"Carga": "Carga (tf)", "rigidez": "Rigidez (tf/mm)"} if idioma == "Português" else {"Carga": "Load (tf)", "rigidez": "Stiffness (tf/mm)"})
         fig2.update_layout(
@@ -272,6 +273,7 @@ def primeiro_programa(idioma):
             )
 
         st.plotly_chart(fig2)
+
 
 
         tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
