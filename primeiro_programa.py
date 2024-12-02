@@ -263,8 +263,10 @@ def primeiro_programa(idioma):
 
         st.plotly_chart(fig)
 
+        # Cálculo da rigidez
         tabela['rigidez'] = tabela['Carga'] / tabela['Recalque']
 
+        # Segundo gráfico
         fig2 = px.scatter(
             tabela, x="Carga", y="rigidez",
             labels={"Carga": "Carga (tf)", "rigidez": "Rigidez (tf/mm)"} if idioma == "Português" else {"Carga": "Load (tf)", "rigidez": "Stiffness (tf/mm)"}
@@ -275,7 +277,7 @@ def primeiro_programa(idioma):
             yaxis_title="Rigidez (tf/mm)" if idioma == "Português" else "Stiffness (tf/mm)"
         )
 
-        # Adicionar numeração dos pontos no segundo gráfico
+        # Adicionar numeração dos pontos usando a coluna 'numero'
         for _, row in tabela.iterrows():
             fig2.add_annotation(
                 x=row["Carga"],
