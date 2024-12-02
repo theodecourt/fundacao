@@ -171,13 +171,13 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         
         if idioma == "Português":
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
-            st.write('Equação da regressão:', equacao)
+            st.markdown(f'**Equação da regressão:** {equacao}')
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
 
         else:
             st.write('Regression type:', tipo_regressao.capitalize())
-            st.write('Regression equation:', equacao)
+            st.markdown(f'**Regression equasion:** {equacao}')
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
 
