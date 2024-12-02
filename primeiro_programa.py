@@ -243,7 +243,7 @@ def primeiro_programa(idioma):
             yaxis_title="Recalque (mm)" if idioma == "Português" else "Settlement (mm)"
         )
 
-        # Adicionar numeração dos pontos
+        # Primeiro gráfico
         for i, row in tabela.iterrows():
             fig.add_annotation(
                 x=row["Carga"],
@@ -254,6 +254,8 @@ def primeiro_programa(idioma):
                 ax=20,
                 ay=-20
             )
+
+        st.plotly_chart(fig)
 
         st.plotly_chart(fig)
 
