@@ -57,6 +57,8 @@ def carregar_tabela(idioma):
     botao_download_exemplo(idioma)
     return None
 
+
+
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     if tipo1 == 'linear' and tipo2 == 'linear':
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
@@ -66,17 +68,17 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
         B = np.array([-reg1[1], -reg2[1]])
         interseccao_log = np.linalg.solve(A, B)
-        interseccao = 10**interseccao_log
+        interseccao = [10**interseccao_log[0], 10**interseccao_log[1]]
     elif tipo1 == 'linear' and tipo2 == 'log':
         def func_intersec(x):
             return reg1[0] * x + reg1[1] - 10**(reg2[0] * np.log10(x) + reg2[1])
-        interseccao_carga = fsolve(func_intersec, x0=1)
+        interseccao_carga = fsolve(func_intersec, x0=1, xtol=1e-6)
         interseccao_rigidez = reg1[0] * interseccao_carga + reg1[1]
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     elif tipo1 == 'log' and tipo2 == 'linear':
         def func_intersec(x):
-            return 10**(reg1[0] * np.log10(x) + reg1[1]) - reg2[0] * x - reg2[1]
-        interseccao_carga = fsolve(func_intersec, x0=1)
+            return 10**(reg1[0] * np.log10(x) + reg1[1]) - (reg2[0] * x + reg2[1])
+        interseccao_carga = fsolve(func_intersec, x0=1, xtol=1e-6)
         interseccao_rigidez = reg2[0] * interseccao_carga + reg2[1]
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     return interseccao
