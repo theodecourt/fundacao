@@ -126,7 +126,17 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     else:
         return None
 
-
+def calcular_quc(reg, tipo_regressao, valor_critico):
+    if tipo_regressao == 'linear':
+        a = reg[1]
+        b = reg[0]
+        quc = a / ((1 / valor_critico) - b)
+    else:  # log
+        def func_quc_log(x):
+            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / valor_critico)
+        quc = fsolve(func_quc_log, x0=1)[0]
+    return quc
+    
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
     # Sort the data by 'Carga' in ascending order
     tabela = tabela.sort_values(by='Carga').reset_index(drop=True)
