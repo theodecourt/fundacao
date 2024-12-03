@@ -72,7 +72,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
     elif tipo1 == 'linear' and tipo2 == 'log':
         def func_intersec(x):
             return reg1[0] * x + reg1[1] - 10**(reg2[0] * np.log10(x) + reg2[1])
-        interseccao_carga = fsolve(func_intersec, x0=1, xtol=1e-6)
+        interseccao_carga = fsolve(func_intersec, x0=1, xtol=1e-8)
         interseccao_rigidez = reg1[0] * interseccao_carga + reg1[1]
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     elif tipo1 == 'log' and tipo2 == 'linear':
@@ -118,7 +118,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         lin_in = pontos_tipos[i][0]
         lin_fim = pontos_tipos[i][1]
         tipo_regressao = pontos_tipos[i][2]
-        linear = tabela[lin_in-1:lin_fim]
+        linear = tabela.iloc[lin_in-1:lin_fim]
+        if tipo_regressao == 'linear':
+            reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
+        else:  # log
+            reg = np.polyfit(linear['logQ'], linear['logRig'], deg=1)
         
         if tipo_regressao == 'linear':
             reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
@@ -305,9 +309,9 @@ def primeiro_programa(idioma):
 
 
 
-        tabela['logQ'] = tabela.apply(lambda row: math.log(row.Carga, 10), axis=1)
+        tabela['logQ'] = tabela['Carga'].apply(lambda x: math.log10(x) if x > 0 else None)
         tabela['logReq'] = tabela.apply(lambda row: math.log(row.Recalque, 10), axis=1)
-        tabela['logRig'] = tabela.apply(lambda row: math.log(row.rigidez, 10), axis=1)
+        tabela['logRig'] = tabela['rigidez'].apply(lambda x: math.log10(x) if x > 0 else None)
 
         num_regressoes = st.selectbox(
             'Quantas regressões:' if idioma == "Português" else 'How many regressions?', 
