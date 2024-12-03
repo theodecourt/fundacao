@@ -65,10 +65,12 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         B = np.array([-reg1[1], -reg2[1]])
         interseccao = np.linalg.solve(A, B)
     elif tipo1 == 'log' and tipo2 == 'log':
-        A = np.array([[reg1[0], -1], [reg2[0], -1]])
-        B = np.array([-reg1[1], -reg2[1]])
-        interseccao_log = np.linalg.solve(A, B)
-        interseccao = [10**interseccao_log[0], 10**interseccao_log[1]]
+        if reg1[0] == reg2[0]:
+            return None  # Regressões paralelas, sem interseção única
+        log_x = (reg2[1] - reg1[1]) / (reg1[0] - reg2[0])
+        x = 10 ** log_x
+        y = 10 ** (reg1[0] * log_x + reg1[1])
+        interseccao = [x, y]
     elif tipo1 == 'linear' and tipo2 == 'log':
         def func_intersec(x):
             return reg1[0] * x + reg1[1] - 10**(reg2[0] * np.log10(x) + reg2[1])
@@ -82,6 +84,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         interseccao_rigidez = reg2[0] * interseccao_carga + reg2[1]
         interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
     return interseccao
+
 
 def calcular_quc(reg, tipo_regressao, valor_critico):
     if tipo_regressao == 'linear':
