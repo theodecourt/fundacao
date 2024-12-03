@@ -60,39 +60,72 @@ def carregar_tabela(idioma):
 
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2):
+    interseccoes = []
+    
     if tipo1 == 'linear' and tipo2 == 'linear':
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
         B = np.array([-reg1[1], -reg2[1]])
         interseccao = np.linalg.solve(A, B)
+        interseccoes.append(interseccao)
+    
     elif tipo1 == 'log' and tipo2 == 'log':
-        A = np.array([[reg1[0], -1], [reg2[0], -1]])
-        B = np.array([-reg1[1], -reg2[1]])
-        interseccao_log = np.linalg.solve(A, B)
-        interseccao = [10**interseccao_log[0], 10**interseccao_log[1]]
-    elif tipo1 == 'linear' and tipo2 == 'log':
+        if reg1[0] == reg2[0]:
+            return None  # Regressões paralelas, sem interseção única
+        log_x = (reg2[1] - reg1[1]) / (reg1[0] - reg2[0])
+        x = 10 ** log_x
+        y = 10 ** (reg1[0] * log_x + reg1[1])
+        interseccao = [x, y]
+        interseccoes.append(interseccao)
+    
+    elif (tipo1 == 'linear' and tipo2 == 'log') or (tipo1 == 'log' and tipo2 == 'linear'):
+        # Definir qual regressão é linear e qual é logarítmica
+        if tipo1 == 'linear':
+            reg_linear, reg_log = reg1, reg2
+        else:
+            reg_linear, reg_log = reg2, reg1
+        
+        # Definir a função de interseção
         def func_intersec(x):
-            return reg1[0] * x + reg1[1] - 10**(reg2[0] * np.log10(x) + reg2[1])
-        interseccao_carga = fsolve(func_intersec, x0=1, xtol=1e-8)
-        interseccao_rigidez = reg1[0] * interseccao_carga + reg1[1]
-        interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
-    elif tipo1 == 'log' and tipo2 == 'linear':
-        def func_intersec(x):
-            return 10**(reg1[0] * np.log10(x) + reg1[1]) - (reg2[0] * x + reg2[1])
-        interseccao_carga = fsolve(func_intersec, x0=1, xtol=1e-6)
-        interseccao_rigidez = reg2[0] * interseccao_carga + reg2[1]
-        interseccao = [interseccao_carga[0], interseccao_rigidez[0]]
-    return interseccao
+            return reg_linear[0] * x + reg_linear[1] - 10**(reg_log[0] * np.log10(x) + reg_log[1])
+        
+        # Buscar raízes em diferentes intervalos
+        # É necessário definir intervalos que provavelmente contenham as interseções
+        # Isso pode variar dependendo dos dados; aqui, assumimos um intervalo amplo
+        intervalos = [(1e-2, 1), (1, 1e3)]
+        encontradas = []
+        
+        for intervalo in intervalos:
+            try:
+                raiz = fsolve(func_intersec, x0=(intervalo[0] + intervalo[1]) / 2, xtol=1e-8)[0]
+                if intervalo[0] <= raiz <= intervalo[1]:
+                    # Verificar se a raiz já foi encontrada (evitar duplicatas)
+                    if not any(np.isclose(raiz, r, atol=1e-6) for r in [e[0] for e in interseccoes]):
+                        if raiz > 0:  # Garantir que a carga é positiva
+                            y = reg_linear[0] * raiz + reg_linear[1]
+                            encontradas.append([raiz, y])
+            except Exception as e:
+                pass  # Ignorar erros e continuar
+                
+        # Se usar intervalos mais específicos ou adicionais, ajuste conforme necessário
+        # Por exemplo, você pode inspecionar os dados para definir intervalos mais apropriados
+        
+        # Adicionar as interseções encontradas
+        for inter in encontradas:
+            interseccoes.append(inter)
+    
+    # Selecionar a interseção com o menor y (menor recalque)
+    if interseccoes:
+        # Filtrar interseções válidas
+        interseccoes_validas = [inter for inter in interseccoes if inter[1] is not None]
+        if not interseccoes_validas:
+            return None
+        
+        # Selecionar a interseção com menor y
+        interseccao_selecionada = min(interseccoes_validas, key=lambda x: x[1])
+        return interseccao_selecionada
+    else:
+        return None
 
-def calcular_quc(reg, tipo_regressao, valor_critico):
-    if tipo_regressao == 'linear':
-        a = reg[1]
-        b = reg[0]
-        quc = a / ((1 / valor_critico) - b)
-    else:  # log
-        def func_quc_log(x):
-            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / valor_critico)
-        quc = fsolve(func_quc_log, x0=1)[0]
-    return quc
 
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
     # Sort the data by 'Carga' in ascending order
