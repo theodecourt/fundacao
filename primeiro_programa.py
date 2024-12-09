@@ -276,16 +276,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             recalque_calculado = carga_input / rigidez
             st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
 
-    # Plotar as interseções, se existirem
-        if interseccoes:
-            for idx, interseccao in enumerate(interseccoes):
-                if interseccao is not None:
-                    st.markdown(
-                        f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx+1]} e regressão {num_romanos[idx+2]}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
-                        unsafe_allow_html=True
-                    )
-                    plt.plot(interseccao[0], interseccao[1], 'rx')  # Marcar a interseção com um 'x' vermelho
-
+    # Plotar as interseções, se existirem, após todas as regressões terem sido processadas
     if interseccoes:
         for idx, interseccao in enumerate(interseccoes):
             if interseccao is not None:
