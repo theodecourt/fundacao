@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from scipy.optimize import fsolve
+from scipy.optimize import fsolve, brentq
 import streamlit as st
 import plotly.express as px
 import io
@@ -90,14 +90,26 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         def func_intersec(x):
             return reg_linear[0] * x + reg_linear[1] - 10**(reg_log[0] * np.log10(x) + reg_log[1])
         
-        # Buscar raízes em diferentes intervalos
-        intervalos = [(1e-2, 1), (1, 1e3)]
+        # Definir intervalos mais amplos para garantir que a interseção seja encontrada
+        intervalos = [
+            (1e-2, 0.5),
+            (0.5, 1),
+            (1, 5),
+            (5, 10),
+            (10, 50),
+            (50, 100),
+            (100, 500),
+            (500, 1e3)
+        ]
         encontradas = []
         
         for intervalo in intervalos:
             try:
-                raiz = fsolve(func_intersec, x0=(intervalo[0] + intervalo[1]) / 2, xtol=1e-8)[0]
-                if intervalo[0] <= raiz <= intervalo[1]:
+                # Verificar se há mudança de sinal no intervalo
+                f_a = func_intersec(intervalo[0])
+                f_b = func_intersec(intervalo[1])
+                if f_a * f_b < 0:
+                    raiz = brentq(func_intersec, intervalo[0], intervalo[1], xtol=1e-8)
                     # Verificar se a raiz já foi encontrada (evitar duplicatas)
                     if not any(np.isclose(raiz, r, atol=1e-6) for r in [e[0] for e in interseccoes if e is not None]):
                         if raiz > 0:  # Garantir que a carga é positiva
@@ -133,7 +145,7 @@ def calcular_quc(reg, tipo_regressao, valor_critico):
             return 10**(reg[0] * np.log10(x) + reg[1]) - (x / valor_critico)
         quc = fsolve(func_quc_log, x0=1)[0]
     return quc
-
+    
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
     # Sort the data by 'Carga' in ascending order
     tabela = tabela.sort_values(by='Carga').reset_index(drop=True)
@@ -293,7 +305,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     plt.legend(loc='best')
     st.pyplot(plt)
-
+    
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
     if tabela is not None:
