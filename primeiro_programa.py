@@ -66,6 +66,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
     interseccoes = []
     
     if tipo1 == 'linear' and tipo2 == 'linear':
+        # Regressões lineares: y = a1*x + b1 e y = a2*x + b2
         A = np.array([[reg1[0], -1], [reg2[0], -1]])
         B = np.array([-reg1[1], -reg2[1]])
         try:
@@ -77,6 +78,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
             return None  # Regressões paralelas ou sem solução única
     
     elif tipo1 == 'log' and tipo2 == 'log':
+        # Regressões logarítmicas: log(y) = a1*log(x) + b1 e log(y) = a2*log(x) + b2
         if reg1[0] == reg2[0]:
             st.write("Regressões logarítmicas são paralelas, sem interseção única.")
             return None  # Regressões paralelas, sem interseção única
@@ -88,7 +90,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
         st.write(f"Interseção Log-Log encontrada em x={x:.4f}, y={y:.4f}")
     
     elif (tipo1 == 'linear' and tipo2 == 'log') or (tipo1 == 'log' and tipo2 == 'linear'):
-        # Definir qual regressão é linear e qual é logarítmica
+        # Regressão mista: uma linear e uma logarítmica
         if tipo1 == 'linear':
             reg_linear, reg_log = reg1, reg2
         else:
@@ -139,7 +141,10 @@ def calcular_quc(reg, tipo_regressao, valor_critico):
     if tipo_regressao == 'linear':
         a = reg[1]
         b = reg[0]
-        quc = a / ((1 / valor_critico) - b)
+        try:
+            quc = a / ((1 / valor_critico) - b)
+        except ZeroDivisionError:
+            quc = np.nan
     else:  # log
         def func_quc_log(x):
             return 10**(reg[0] * np.log10(x) + reg[1]) - (x / valor_critico)
@@ -272,6 +277,15 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
 
     # Plotar as interseções, se existirem
+        if interseccoes:
+            for idx, interseccao in enumerate(interseccoes):
+                if interseccao is not None:
+                    st.markdown(
+                        f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx+1]} e regressão {num_romanos[idx+2]}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
+                        unsafe_allow_html=True
+                    )
+                    plt.plot(interseccao[0], interseccao[1], 'rx')  # Marcar a interseção com um 'x' vermelho
+
     if interseccoes:
         for idx, interseccao in enumerate(interseccoes):
             if interseccao is not None:
@@ -299,12 +313,11 @@ def primeiro_programa(idioma):
         # Renomear as colunas para 'Carga' e 'Recalque' independentemente do idioma
         if "Carga (tf)" in tabela.columns and "Recalque (mm)" in tabela.columns:
             tabela = tabela.rename(columns={"Carga (tf)": "Carga", "Recalque (mm)": "Recalque"})
+        elif "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
+            tabela = tabela.rename(columns={"Load (tf)": "Carga", "Settlement (mm)": "Recalque"})
         else:
-            if "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
-                tabela = tabela.rename(columns={"Load (tf)": "Carga", "Settlement (mm)": "Recalque"})
-            else:
-                st.error("Formato de coluna inválido. Certifique-se de que o arquivo contém 'Carga (tf)' e 'Recalque (mm)' ou 'Load (tf)' e 'Settlement (mm)'.")
-                return
+            st.error("Formato de coluna inválido. Certifique-se de que o arquivo contém 'Carga (tf)' e 'Recalque (mm)' ou 'Load (tf)' e 'Settlement (mm)'.")
+            return
         
         # Garantir que as colunas 'Carga' e 'Recalque' são numéricas
         try:
