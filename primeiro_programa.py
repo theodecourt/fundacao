@@ -58,7 +58,7 @@ def carregar_tabela(idioma):
     botao_download_exemplo(idioma)
     return None
 
-def calcular_interseccao(reg1, reg2, tipo1, tipo2):
+def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
     interseccoes = []
     
     if tipo1 == 'linear' and tipo2 == 'linear':
@@ -67,17 +67,21 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         try:
             interseccao = np.linalg.solve(A, B)
             interseccoes.append(interseccao)
+            st.write(f"Interseção Linear-Linear encontrada em x={interseccao[0]:.4f}, y={interseccao[1]:.4f}")
         except np.linalg.LinAlgError:
+            st.write("Regressões lineares são paralelas ou não têm solução única.")
             return None  # Regressões paralelas ou sem solução única
     
     elif tipo1 == 'log' and tipo2 == 'log':
         if reg1[0] == reg2[0]:
+            st.write("Regressões logarítmicas são paralelas, sem interseção única.")
             return None  # Regressões paralelas, sem interseção única
         log_x = (reg2[1] - reg1[1]) / (reg1[0] - reg2[0])
         x = 10 ** log_x
         y = 10 ** (reg1[0] * log_x + reg1[1])
         interseccao = [x, y]
         interseccoes.append(interseccao)
+        st.write(f"Interseção Log-Log encontrada em x={x:.4f}, y={y:.4f}")
     
     elif (tipo1 == 'linear' and tipo2 == 'log') or (tipo1 == 'log' and tipo2 == 'linear'):
         # Definir qual regressão é linear e qual é logarítmica
@@ -90,49 +94,41 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2):
         def func_intersec(x):
             return reg_linear[0] * x + reg_linear[1] - 10**(reg_log[0] * np.log10(x) + reg_log[1])
         
-        # Definir intervalos mais amplos para garantir que a interseção seja encontrada
-        intervalos = [
-            (1e-2, 0.5),
-            (0.5, 1),
-            (1, 5),
-            (5, 10),
-            (10, 50),
-            (50, 100),
-            (100, 500),
-            (500, 1e3)
-        ]
-        encontradas = []
+        # Escanear o intervalo de x_min a x_max para encontrar mudanças de sinal
+        num_steps = 1000
+        x_values = np.linspace(x_min, x_max, num_steps)
+        f_values = func_intersec(x_values)
         
-        for intervalo in intervalos:
-            try:
-                # Verificar se há mudança de sinal no intervalo
-                f_a = func_intersec(intervalo[0])
-                f_b = func_intersec(intervalo[1])
-                if f_a * f_b < 0:
-                    raiz = brentq(func_intersec, intervalo[0], intervalo[1], xtol=1e-8)
+        # Identificar onde a função muda de sinal
+        for i in range(len(x_values)-1):
+            if np.isnan(f_values[i]) or np.isnan(f_values[i+1]):
+                continue  # Ignorar valores inválidos
+            if f_values[i] * f_values[i+1] < 0:
+                try:
+                    raiz = brentq(func_intersec, x_values[i], x_values[i+1], xtol=1e-8)
                     # Verificar se a raiz já foi encontrada (evitar duplicatas)
-                    if not any(np.isclose(raiz, r, atol=1e-6) for r in [e[0] for e in interseccoes if e is not None]):
+                    if not any(np.isclose(raiz, r[0], atol=1e-6) for r in interseccoes):
                         if raiz > 0:  # Garantir que a carga é positiva
                             y = reg_linear[0] * raiz + reg_linear[1]
-                            encontradas.append([raiz, y])
-            except Exception:
-                pass  # Ignorar erros e continuar
-                
-        # Adicionar as interseções encontradas
-        for inter in encontradas:
-            interseccoes.append(inter)
+                            interseccoes.append([raiz, y])
+                            st.write(f"Interseção Linear-Log encontrada em x={raiz:.4f}, y={y:.4f}")
+                except ValueError:
+                    continue  # Não houve mudança de sinal no intervalo
     
     # Selecionar a interseção com o menor y (menor recalque)
     if interseccoes:
         # Filtrar interseções válidas
         interseccoes_validas = [inter for inter in interseccoes if inter is not None and inter[1] is not None]
         if not interseccoes_validas:
+            st.write("Nenhuma interseção válida encontrada.")
             return None
         
         # Selecionar a interseção com menor y
         interseccao_selecionada = min(interseccoes_validas, key=lambda x: x[1])
+        st.write(f"Interseção selecionada: x={interseccao_selecionada[0]:.4f}, y={interseccao_selecionada[1]:.4f}")
         return interseccao_selecionada
     else:
+        st.write("Nenhuma interseção encontrada.")
         return None
 
 def calcular_quc(reg, tipo_regressao, valor_critico):
@@ -181,7 +177,10 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         tipos.append(tipo_regressao)
 
         if i > 0:
-            interseccao = calcular_interseccao(regressions[i-1], reg, tipos[i-1], tipo_regressao)
+            # Determinar x_min e x_max para interseção
+            x_min = max(tabela['Carga'].min(), tabela['Carga'].iloc[lin_in-1])
+            x_max = tabela['Carga'].max()
+            interseccao = calcular_interseccao(regressions[i-1], reg, tipos[i-1], tipo_regressao, x_min, x_max)
             interseccoes.append(interseccao)
 
     for i in range(num_regressoes):
@@ -198,53 +197,34 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             unsafe_allow_html=True
         )
 
-        if tipo_regressao == 'linear':
-            if i == 0:
-                x_inicio = tabela['Carga'].iloc[lin_in-1]
+        # Definir x_inicio e x_fim com base nas interseccões
+        if i == 0:
+            x_inicio = tabela['Carga'].iloc[lin_in-1]
+        else:
+            interseccao_anterior = interseccoes[i-1]
+            if interseccao_anterior is not None:
+                x_inicio = interseccao_anterior[0]
             else:
-                interseccao_anterior = interseccoes[i-1]
-                if interseccao_anterior is not None:
-                    x_inicio = interseccao_anterior[0]
-                else:
-                    st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i]} e {num_romanos[i+1]}. Verifique os pontos de regressão.")
-                    return
-            if i == num_regressoes-1:
-                x_fim = tabela['Carga'].iloc[lin_fim-1]
+                st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i]} e {num_romanos[i+1]}. Verifique os pontos de regressão.")
+                return
+        if i == num_regressoes-1:
+            x_fim = tabela['Carga'].iloc[lin_fim-1]
+        else:
+            interseccao_atual = interseccoes[i]
+            if interseccao_atual is not None:
+                x_fim = interseccao_atual[0]
             else:
-                interseccao_atual = interseccoes[i]
-                if interseccao_atual is not None:
-                    x_fim = interseccao_atual[0]
-                else:
-                    st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i+1]} e {num_romanos[i+2]}. Verifique os pontos de regressão.")
-                    return
+                st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i+1]} e {num_romanos[i+2]}. Verifique os pontos de regressão.")
+                return
 
-            x = np.linspace(x_inicio, x_fim, 100)
+        # Definir o intervalo para x
+        x = np.linspace(x_inicio, x_fim, 100)
+        if tipo_regressao == 'linear':
             predict = np.poly1d(regressions[i])
             y = predict(x)
             corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
             equacao = f'rigidez (tf/mm) = {regressions[i][0]:.4f} * Carga (tf) + {regressions[i][1]:.4f}'
-
         else:  # log
-            if i == 0:
-                x_inicio = tabela['Carga'].iloc[lin_in-1]
-            else:
-                interseccao_anterior = interseccoes[i-1]
-                if interseccao_anterior is not None:
-                    x_inicio = interseccao_anterior[0]
-                else:
-                    st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i]} e {num_romanos[i+1]}. Verifique os pontos de regressão.")
-                    return
-            if i == num_regressoes-1:
-                x_fim = tabela['Carga'].iloc[lin_fim-1]
-            else:
-                interseccao_atual = interseccoes[i]
-                if interseccao_atual is not None:
-                    x_fim = interseccao_atual[0]
-                else:
-                    st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i+1]} e {num_romanos[i+2]}. Verifique os pontos de regressão.")
-                    return
-
-            x = np.linspace(x_inicio, x_fim, 100)
             predict = np.poly1d(regressions[i])
             y = 10**predict(np.log10(x))
             corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
@@ -305,7 +285,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     plt.legend(loc='best')
     st.pyplot(plt)
-    
+
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
     if tabela is not None:
