@@ -247,7 +247,20 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         quc = calcular_quc(regressions[i], tipo_regressao, recalque_critico)
 
-        plt.plot(x, y, color=colors[i], label=f'Regressão {i+1}' if idioma == 'Português' else f'Regression {i+1}')
+        # Traçar a linha da regressão
+        plt.plot(x, y, color=colors[i], label=f'Regressão {num_romanos[i+1]}' if idioma == 'Português' else f'Regression {num_romanos[i+1]}')
+
+        # Adicionar o número romano próximo ao centro da linha de regressão
+        x_centro = (x_inicio + x_fim) / 2
+        y_centro = predict(x_centro) if tipo_regressao == 'linear' else 10**predict(np.log10(x_centro))
+        plt.text(
+            x_centro, y_centro, 
+            f'{num_romanos[i+1]}', 
+            color=colors[i], 
+            fontsize=12, 
+            fontweight='bold',
+            ha='center', va='center'
+        )
         
         if idioma == "Português":
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
