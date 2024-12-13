@@ -221,7 +221,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         x_centro = (x_inicio + x_fim) / 2
         y_centro = predict(x_centro) if tipo_regressao == 'linear' else 10**predict(np.log10(x_centro))
         plt.text(
-            x_centro, y_centro, 
+        x_centro, y_centro * 1.05,  # Ajuste vertical para posicionar acima da linha
             f'{num_romanos[i+1]}', 
             color=colors[i], 
             fontsize=12, 
