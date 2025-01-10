@@ -164,8 +164,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     plt.figure(figsize=(10, 6))
     plt.plot(x0, y0, 'go', label='Dados Originais' if idioma == 'Português' else 'Original Data')
 
-    # Numerar os pontos de dados
-    for i, (x, y) in enumerate(zip(x0, y0), start=1):
+    # Numerar os pontos de dados (AGORA DE 0 A n-1)
+    for i, (x, y) in enumerate(zip(x0, y0)):
         plt.annotate(str(i), (x, y), textcoords="offset points", xytext=(0,5), ha='center')
 
     regressions = []
@@ -259,7 +259,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             color=colors[i], 
             fontsize=20, 
             fontweight='bold',
-            ha='center'  # Centralizar o texto horizontalmente
+            ha='center'
         )
         
         if idioma == "Português":
@@ -362,12 +362,12 @@ def primeiro_programa(idioma):
             yaxis_title="Recalque (mm)" if idioma == "Português" else "Settlement (mm)"
         )
 
-        # Adicionar numeração dos pontos
+        # Adicionar numeração dos pontos (AGORA DE 0 A n-1)
         for i, row in tabela.iterrows():
             fig.add_annotation(
                 x=row["Carga"],
                 y=row["Recalque"],
-                text=str(i + 1),
+                text=str(i),  # Removido o +1
                 showarrow=True,
                 arrowhead=1,
                 ax=20,
@@ -393,12 +393,12 @@ def primeiro_programa(idioma):
             yaxis_title="Rigidez (tf/mm)" if idioma == "Português" else "Stiffness (tf/mm)"
         )
 
-        # Adicionar numeração dos pontos
+        # Adicionar numeração dos pontos (AGORA DE 0 A n-1)
         for i, row in tabela.iterrows():
             fig2.add_annotation(
                 x=row["Carga"],
                 y=row["rigidez"],
-                text=str(i + 1),
+                text=str(i),  # Removido o +1
                 showarrow=True,
                 arrowhead=1,
                 ax=20,
