@@ -164,7 +164,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     plt.figure(figsize=(10, 6))
     plt.plot(x0, y0, 'go', label='Dados Originais' if idioma == 'Português' else 'Original Data')
 
-    # Numerar os pontos de dados (AGORA DE 0 A n-1)
+    # Numerar os pontos de dados (de 0 a n-1)
     for i, (x, y) in enumerate(zip(x0, y0)):
         plt.annotate(str(i), (x, y), textcoords="offset points", xytext=(0,5), ha='center')
 
@@ -179,7 +179,10 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         lin_in = pontos_tipos[i][0]
         lin_fim = pontos_tipos[i][1]
         tipo_regressao = pontos_tipos[i][2]
-        linear = tabela.iloc[lin_in-1:lin_fim]
+        
+        # Fatiamento 0-based, incluindo o ponto final
+        linear = tabela.iloc[lin_in : lin_fim + 1]
+        
         if tipo_regressao == 'linear':
             reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
         else:  # log
@@ -190,7 +193,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         if i > 0:
             # Determinar x_min e x_max para interseção
-            x_min = max(tabela['Carga'].min(), tabela['Carga'].iloc[lin_in-1])
+            # Note que lin_in já é 0-based
+            x_min = max(tabela['Carga'].min(), tabela['Carga'].iloc[lin_in])
             x_max = tabela['Carga'].max()
             interseccao = calcular_interseccao(regressions[i-1], reg, tipos[i-1], tipo_regressao, x_min, x_max)
             interseccoes.append(interseccao)
@@ -199,7 +203,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         lin_in = pontos_tipos[i][0]
         lin_fim = pontos_tipos[i][1]
         tipo_regressao = pontos_tipos[i][2]
-        linear = tabela.iloc[lin_in-1:lin_fim]
+        
+        # Mesmo fatiamento para criar o "sub-tabela" do segmento
+        linear = tabela.iloc[lin_in : lin_fim + 1]
 
         # Definir a cor baseada na regressão
         cor_texto = colors[i]  # Use a cor da lista de cores
@@ -211,7 +217,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         # Definir x_inicio e x_fim com base nas interseções
         if i == 0:
-            x_inicio = tabela['Carga'].iloc[lin_in-1]
+            x_inicio = tabela['Carga'].iloc[lin_in]
         else:
             interseccao_anterior = interseccoes[i-1]
             if interseccao_anterior is not None:
@@ -220,7 +226,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i]} e {num_romanos[i+1]}. Verifique os pontos de regressão.")
                 return
         if i == num_regressoes-1:
-            x_fim = tabela['Carga'].iloc[lin_fim-1]
+            x_fim = tabela['Carga'].iloc[lin_fim]
         else:
             interseccao_atual = interseccoes[i]
             if interseccao_atual is not None:
@@ -251,7 +257,10 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
         # Adicionar o número da equação no centro da linha
         x_centro = (x_inicio + x_fim) / 2
-        y_centro = predict(x_centro) if tipo_regressao == 'linear' else 10**predict(np.log10(x_centro))
+        if tipo_regressao == 'linear':
+            y_centro = predict(x_centro)
+        else:
+            y_centro = 10**predict(np.log10(x_centro))
         plt.text(
             x_centro, 
             y_centro * 1.15,  # Ajuste vertical para posicionar acima da linha
@@ -331,10 +340,10 @@ def primeiro_programa(idioma):
             st.error("As colunas 'Carga' e 'Recalque' devem conter apenas valores numéricos.")
             return
 
-        # Calcular a rigidez usando operações vetorizadas
+        # Calcular a rigidez
         tabela['rigidez'] = tabela['Carga'] / tabela['Recalque']
 
-        # Calcular logaritmos, garantindo que não haja valores inválidos
+        # Calcular logaritmos
         tabela['logQ'] = tabela['Carga'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
         tabela['logReq'] = tabela['Recalque'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
         tabela['logRig'] = tabela['rigidez'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
@@ -345,15 +354,27 @@ def primeiro_programa(idioma):
         )
 
         # Inputs adicionais para carga e recalque
-        recalque_input = st.number_input('Quer calcular a carga para qual recalque? (mm)', format="%.2f", min_value=0.0)
-        carga_input = st.number_input('Quer estimar o recalque para qual carga? (tf)', format="%.2f", min_value=0.0)
+        recalque_input = st.number_input(
+            'Quer calcular a carga para qual recalque? (mm)' if idioma == "Português" else 'Which settlement do you want to calculate load for? (mm)',
+            format="%.2f", min_value=0.0
+        )
+        carga_input = st.number_input(
+            'Quer estimar o recalque para qual carga? (tf)' if idioma == "Português" else 'Which load do you want to estimate settlement for? (tf)',
+            format="%.2f", min_value=0.0
+        )
 
         tabela = tabela.sort_values(by="Carga").reset_index(drop=True)
 
-        # Primeiro gráfico: Carga vs Recalque
+        # Primeiro gráfico: Carga vs Recalque (com Plotly)
         fig = px.scatter(
             tabela, x="Carga", y="Recalque",
-            labels={"Carga": "Carga (tf)", "Recalque": "Recalque (mm)"} if idioma == "Português" else {"Carga": "Load (tf)", "Recalque": "Settlement (mm)"}
+            labels={
+                "Carga": "Carga (tf)", 
+                "Recalque": "Recalque (mm)"
+            } if idioma == "Português" else {
+                "Carga": "Load (tf)", 
+                "Recalque": "Settlement (mm)"
+            }
         )
         fig.update_yaxes(autorange="reversed")
         fig.update_layout(
@@ -362,12 +383,12 @@ def primeiro_programa(idioma):
             yaxis_title="Recalque (mm)" if idioma == "Português" else "Settlement (mm)"
         )
 
-        # Adicionar numeração dos pontos (AGORA DE 0 A n-1)
+        # Anotar de 0 a n-1
         for i, row in tabela.iterrows():
             fig.add_annotation(
                 x=row["Carga"],
                 y=row["Recalque"],
-                text=str(i),  # Removido o +1
+                text=str(i),  # sem +1
                 showarrow=True,
                 arrowhead=1,
                 ax=20,
@@ -376,7 +397,7 @@ def primeiro_programa(idioma):
 
         st.plotly_chart(fig)
 
-        # Segundo gráfico: Carga vs Rigidez
+        # Segundo gráfico: Carga vs Rigidez (com Plotly)
         fig2 = px.scatter(
             tabela, x="Carga", y="rigidez",
             labels={
@@ -393,12 +414,11 @@ def primeiro_programa(idioma):
             yaxis_title="Rigidez (tf/mm)" if idioma == "Português" else "Stiffness (tf/mm)"
         )
 
-        # Adicionar numeração dos pontos (AGORA DE 0 A n-1)
         for i, row in tabela.iterrows():
             fig2.add_annotation(
                 x=row["Carga"],
                 y=row["rigidez"],
-                text=str(i),  # Removido o +1
+                text=str(i),  # sem +1
                 showarrow=True,
                 arrowhead=1,
                 ax=20,
@@ -407,7 +427,7 @@ def primeiro_programa(idioma):
 
         st.plotly_chart(fig2)
 
-        # Seleção do número de regressões
+        # Escolher o número de regressões
         num_regressoes = st.selectbox(
             'Quantas regressões:' if idioma == "Português" else 'How many regressions?', 
             [1, 2, 3], index=0
@@ -419,47 +439,47 @@ def primeiro_programa(idioma):
             lin_fim_key = f'lin_fim_{i}'
             tipo_regressao_key = f'tipo_regressao_{i}'
 
-            # Recuperar valores anteriores do estado da sessão ou definir padrões
-            lin_in_default = st.session_state.get(lin_in_key, '1')
-            lin_fim_default = st.session_state.get(lin_fim_key, str(len(tabela)))
+            # Definir padrões para 0-based
+            lin_in_default = st.session_state.get(lin_in_key, '0')
+            lin_fim_default = st.session_state.get(lin_fim_key, str(len(tabela) - 1))
             tipo_regressao_default = st.session_state.get(tipo_regressao_key, 'linear')
 
             lin_in_str = st.text_input(
-                f'Ponto inicial da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Starting point of regression {num_romanos[i+1]}:', 
+                f'Ponto inicial da regressão {num_romanos[i+1]} (0-based):' if idioma == "Português" else f'Starting point of regression {num_romanos[i+1]} (0-based):', 
                 value=lin_in_default,
                 key=lin_in_key
             )
 
             lin_fim_str = st.text_input(
-                f'Ponto final da regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Ending point of regression {num_romanos[i+1]}:', 
+                f'Ponto final da regressão {num_romanos[i+1]} (0-based):' if idioma == "Português" else f'Ending point of regression {num_romanos[i+1]} (0-based):', 
                 value=lin_fim_default,
                 key=lin_fim_key
             )
 
-            # Analisar as entradas para inteiros, lidar com erros
+            # Conversão para inteiro
             try:
                 lin_in = int(lin_in_str)
             except ValueError:
-                st.error(f"Entrada inválida para o ponto inicial da regressão {num_romanos[i+1]}. Por favor, insira um número inteiro.")
+                st.error(f"Entrada inválida para o ponto inicial da regressão {num_romanos[i+1]}. Insira um número inteiro.")
                 return
-
             try:
                 lin_fim = int(lin_fim_str)
             except ValueError:
-                st.error(f"Entrada inválida para o ponto final da regressão {num_romanos[i+1]}. Por favor, insira um número inteiro.")
+                st.error(f"Entrada inválida para o ponto final da regressão {num_romanos[i+1]}. Insira um número inteiro.")
                 return
 
-            # Verificar se lin_in e lin_fim estão dentro do intervalo válido
-            if lin_in < 1 or lin_in > len(tabela):
-                st.error(f"Ponto inicial da regressão {num_romanos[i+1]} deve estar entre 1 e {len(tabela)}.")
+            # Verificações 0-based
+            if lin_in < 0 or lin_in >= len(tabela):
+                st.error(f"Ponto inicial da regressão {num_romanos[i+1]} deve estar entre 0 e {len(tabela)-1}.")
                 return
-            if lin_fim < lin_in or lin_fim > len(tabela):
-                st.error(f"Ponto final da regressão {num_romanos[i+1]} deve estar entre {lin_in} e {len(tabela)}.")
+            if lin_fim < lin_in or lin_fim >= len(tabela):
+                st.error(f"Ponto final da regressão {num_romanos[i+1]} deve estar entre {lin_in} e {len(tabela)-1}.")
                 return
 
             tipo_regressao = st.selectbox(
                 f'Tipo de regressão {num_romanos[i+1]}:' if idioma == "Português" else f'Regression type {num_romanos[i+1]}:', 
-                ['linear', 'log'], index=0,
+                ['linear', 'log'], 
+                index=0,
                 key=tipo_regressao_key
             )
 
