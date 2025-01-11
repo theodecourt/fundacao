@@ -395,7 +395,11 @@ def primeiro_programa(idioma):
                 ay=-20
             )
 
-        st.plotly_chart(fig)
+        config_plotly = {
+            "staticPlot": True,       # Torna o gráfico estático
+            "displayModeBar": False   # Oculta a barra de ferramentas
+        }
+        st.plotly_chart(fig, config=config_plotly)
 
         # Segundo gráfico: Carga vs Rigidez (com Plotly)
         fig2 = px.scatter(
@@ -425,7 +429,7 @@ def primeiro_programa(idioma):
                 ay=-20
             )
 
-        st.plotly_chart(fig2)
+        st.plotly_chart(fig2, config=config_plotly)
 
         # Escolher o número de regressões
         num_regressoes = st.selectbox(
