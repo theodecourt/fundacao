@@ -43,7 +43,12 @@ def botao_download_exemplo(idioma):
 
     label = "Baixar exemplo" if idioma == "Português" else "Download example"
     file_name = "exemplo.xlsx" if idioma == "Português" else "example.xlsx"
-    st.download_button(label=label, data=output, file_name=file_name, mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    st.download_button(
+        label=label, 
+        data=output, 
+        file_name=file_name, 
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
 def carregar_tabela(idioma):
     uploaded_file = st.file_uploader(
@@ -75,13 +80,13 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
             st.write(f"Interseção Linear-Linear encontrada em x={interseccao[0]:.4f}, y={interseccao[1]:.4f}")
         except np.linalg.LinAlgError:
             st.write("Regressões lineares são paralelas ou não têm solução única.")
-            return None  # Regressões paralelas ou sem solução única
+            return None  # Regressões paralelas ou sem solução
     
     elif tipo1 == 'log' and tipo2 == 'log':
-        # Regressões logarítmicas: log(y) = a1*log(x) + b1 e log(y) = a2*log(x) + b2
+        # Regressões logarítmicas (na forma: log(y) = a*log(x) + b)
         if reg1[0] == reg2[0]:
             st.write("Regressões logarítmicas são paralelas, sem interseção única.")
-            return None  # Regressões paralelas, sem interseção única
+            return None
         log_x = (reg2[1] - reg1[1]) / (reg1[0] - reg2[0])
         x = 10 ** log_x
         y = 10 ** (reg1[0] * log_x + reg1[1])
@@ -96,11 +101,9 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
         else:
             reg_linear, reg_log = reg2, reg1
         
-        # Definir a função de interseção
         def func_intersec(x):
             return reg_linear[0] * x + reg_linear[1] - 10**(reg_log[0] * np.log10(x) + reg_log[1])
         
-        # Escanear o intervalo de x_min a x_max para encontrar mudanças de sinal
         num_steps = 1000
         x_values = np.linspace(x_min, x_max, num_steps)
         f_values = func_intersec(x_values)
@@ -108,27 +111,25 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
         # Identificar onde a função muda de sinal
         for i in range(len(x_values)-1):
             if np.isnan(f_values[i]) or np.isnan(f_values[i+1]):
-                continue  # Ignorar valores inválidos
+                continue
             if f_values[i] * f_values[i+1] < 0:
                 try:
                     raiz = brentq(func_intersec, x_values[i], x_values[i+1], xtol=1e-8)
-                    # Verificar se a raiz já foi encontrada (evitar duplicatas)
+                    # Evitar duplicatas (se já existir interseção bem próxima)
                     if not any(np.isclose(raiz, r[0], atol=1e-6) for r in [e for e in interseccoes if e is not None]):
                         if raiz > 0:  # Garantir que a carga é positiva
                             y = reg_linear[0] * raiz + reg_linear[1]
                             interseccoes.append([raiz, y])
                             st.write(f"Interseção Linear-Log encontrada em x={raiz:.4f}, y={y:.4f}")
                 except ValueError:
-                    continue  # Não houve mudança de sinal no intervalo
+                    continue
     
     # Selecionar a interseção com o menor y (menor recalque)
     if interseccoes:
-        # Filtrar interseções válidas
         interseccoes_validas = [inter for inter in interseccoes if inter is not None and inter[1] is not None]
         if not interseccoes_validas:
             st.write("Nenhuma interseção válida encontrada.")
             return None
-        
         # Selecionar a interseção com menor y
         interseccao_selecionada = min(interseccoes_validas, key=lambda x: x[1])
         st.write(f"Interseção selecionada: x={interseccao_selecionada[0]:.4f}, y={interseccao_selecionada[1]:.4f}")
@@ -138,6 +139,7 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
         return None
 
 def calcular_quc(reg, tipo_regressao, valor_critico):
+    """Cálculo de Quc (carga para um determinado recalque) dependendo do tipo de regressão."""
     if tipo_regressao == 'linear':
         a = reg[1]
         b = reg[0]
@@ -155,16 +157,15 @@ def calcular_quc(reg, tipo_regressao, valor_critico):
     return quc
 
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
-    # Ordenar a tabela por 'Carga' em ordem crescente
     tabela = tabela.sort_values(by='Carga').reset_index(drop=True)
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
 
-    colors = ['blue', 'red', 'green']  # Use nomes de cores para consistência
+    colors = ['blue', 'red', 'green']
     plt.figure(figsize=(10, 6))
     plt.plot(x0, y0, 'go', label='Dados Originais' if idioma == 'Português' else 'Original Data')
 
-    # Numerar os pontos de dados (de 0 a n-1)
+    # Numerar os pontos no gráfico
     for i, (x, y) in enumerate(zip(x0, y0)):
         plt.annotate(str(i), (x, y), textcoords="offset points", xytext=(0,5), ha='center')
 
@@ -172,16 +173,17 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     tipos = []
     interseccoes = []
 
+    # Valor do recalque crítico
     recalque_critico = 0.1 * diametro_estaca
 
-    # Calcular as regressões
+    # Calcular cada regressão e encontrar a interseção com a anterior
     for i in range(num_regressoes):
         lin_in = pontos_tipos[i][0]
         lin_fim = pontos_tipos[i][1]
         tipo_regressao = pontos_tipos[i][2]
         
-        # Fatiamento 0-based, incluindo o ponto final
-        linear = tabela.iloc[lin_in : lin_fim + 1]
+        # Fatiando a tabela conforme pontos selecionados
+        linear = tabela.iloc[lin_in: lin_fim + 1]
         
         if tipo_regressao == 'linear':
             reg = np.polyfit(linear['Carga'], linear['rigidez'], deg=1)
@@ -191,71 +193,81 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         regressions.append(reg)
         tipos.append(tipo_regressao)
 
+        # Se já houver uma regressão anterior, tentar calcular a interseção com ela
         if i > 0:
             # Determinar x_min e x_max para interseção
-            # Note que lin_in já é 0-based
             x_min = max(tabela['Carga'].min(), tabela['Carga'].iloc[lin_in])
             x_max = tabela['Carga'].max()
+
             interseccao = calcular_interseccao(regressions[i-1], reg, tipos[i-1], tipo_regressao, x_min, x_max)
             interseccoes.append(interseccao)
+        else:
+            interseccoes.append(None)  # Para manter o mesmo comprimento da lista
 
+    # Plotar as regressões
     for i in range(num_regressoes):
         lin_in = pontos_tipos[i][0]
         lin_fim = pontos_tipos[i][1]
         tipo_regressao = pontos_tipos[i][2]
-        
-        # Mesmo fatiamento para criar o "sub-tabela" do segmento
-        linear = tabela.iloc[lin_in : lin_fim + 1]
 
-        # Definir a cor baseada na regressão
-        cor_texto = colors[i]  # Use a cor da lista de cores
+        # "Sub-tabela" para plot (opcional, mas mantemos para consistência)
+        linear = tabela.iloc[lin_in : lin_fim + 1]
+        cor_texto = colors[i]
 
         st.markdown(
             f"<b style='color:{cor_texto};'>Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}</b>",
             unsafe_allow_html=True
         )
 
-        # Definir x_inicio e x_fim com base nas interseções
+        # Definir x_inicio e x_fim
         if i == 0:
             x_inicio = tabela['Carga'].iloc[lin_in]
         else:
-            interseccao_anterior = interseccoes[i-1]
+            interseccao_anterior = interseccoes[i]
             if interseccao_anterior is not None:
                 x_inicio = interseccao_anterior[0]
             else:
-                st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i]} e {num_romanos[i+1]}. Verifique os pontos de regressão.")
-                return
-        if i == num_regressoes-1:
+                # Não interrompe mais o fluxo; apenas avisa
+                st.warning(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i]} e {num_romanos[i+1]}. Usando ponto inicial da segmentação.")
+                x_inicio = tabela['Carga'].iloc[lin_in]
+
+        if i == num_regressoes - 1:
             x_fim = tabela['Carga'].iloc[lin_fim]
         else:
-            interseccao_atual = interseccoes[i]
+            interseccao_atual = interseccoes[i+1]
             if interseccao_atual is not None:
                 x_fim = interseccao_atual[0]
             else:
-                st.error(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i+1]} e {num_romanos[i+2]}. Verifique os pontos de regressão.")
-                return
+                st.warning(f"Não foi possível calcular a interseção entre as regressões {num_romanos[i+1]} e {num_romanos[i+2]}. Usando ponto final da segmentação.")
+                x_fim = tabela['Carga'].iloc[lin_fim]
 
-        # Definir o intervalo para x
+        # Gerar pontos de x para plotar a curva
         x = np.linspace(x_inicio, x_fim, 100)
+        
+        # Ajuste linear ou log
         if tipo_regressao == 'linear':
             predict = np.poly1d(regressions[i])
             y = predict(x)
+            # Correlação linear
             corr_matrix = np.corrcoef(linear['rigidez'], linear['Carga'])
             equacao = f'rigidez (tf/mm) = {regressions[i][0]:.4f} * Carga (tf) + {regressions[i][1]:.4f}'
-        else:  # log
+        else:
             predict = np.poly1d(regressions[i])
             y = 10**predict(np.log10(x))
+            # Correlação para log
             corr_matrix = np.corrcoef(linear['logRig'], linear['logQ'])
             equacao = f'log(rigidez) = {regressions[i][0]:.4f} * log(Carga) + {regressions[i][1]:.4f}'
 
         corr = corr_matrix[0, 1]
         R_sq = corr**2
 
+        # Cálculo de Quc
         quc = calcular_quc(regressions[i], tipo_regressao, recalque_critico)
 
+        # Plot no matplotlib
         plt.plot(x, y, color=colors[i], label=f'Regressão {i+1}' if idioma == 'Português' else f'Regression {i+1}')
 
-        # Adicionar o número da equação no centro da linha
+        # Adicionar "rótulo" da equação no meio do intervalo
         x_centro = (x_inicio + x_fim) / 2
         if tipo_regressao == 'linear':
             y_centro = predict(x_centro)
@@ -263,7 +275,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             y_centro = 10**predict(np.log10(x_centro))
         plt.text(
             x_centro, 
-            y_centro * 1.15,  # Ajuste vertical para posicionar acima da linha
+            y_centro * 1.15,
             f'{num_romanos[i+1]}', 
             color=colors[i], 
             fontsize=20, 
@@ -271,26 +283,25 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             ha='center'
         )
         
+        # Exibir detalhes no Streamlit
         if idioma == "Português":
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
-            # Exibir a equação da regressão na mesma cor da linha de regressão
             st.markdown(f'<span style="color:{cor_texto};"><strong>Equação da regressão:</strong> {equacao}</span>', unsafe_allow_html=True)
             st.write('R²:', R_sq)
             st.write(f'Quc para a regressão {num_romanos[i+1]}: {quc:.2f} tf')
         else:
             st.write('Regression type:', tipo_regressao.capitalize())
-            # Exibir a equação da regressão na mesma cor da linha de regressão
             st.markdown(f'<span style="color:{cor_texto};"><strong>Regression equation:</strong> {equacao}</span>', unsafe_allow_html=True)
             st.write('R²:', R_sq)
             st.write(f'Quc for regression {num_romanos[i+1]}: {quc:.2f} tf')
 
-        # Calcular e exibir carga e recalque com base na regressão
+        # Se o usuário forneceu um recalque_input > 0, calcula a carga correspondente
         if recalque_input > 0:
             carga_calculada = calcular_quc(regressions[i], tipo_regressao, recalque_input)
             st.write(f"A carga para o recalque {recalque_input:.2f} mm é {carga_calculada:.2f} tf.")
-        
+
+        # Se o usuário forneceu um carga_input > 0, calcula o recalque correspondente
         if carga_input > 0:
-            # Calcular rigidez para a carga dada
             if tipo_regressao == 'linear':
                 rigidez = predict(carga_input)
             else:
@@ -298,15 +309,14 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             recalque_calculado = carga_input / rigidez
             st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
 
-    # Plotar as interseções, se existirem, após todas as regressões terem sido processadas
-    if interseccoes:
-        for idx, interseccao in enumerate(interseccoes):
-            if interseccao is not None:
-                st.markdown(
-                    f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx+1]} e regressão {num_romanos[idx+2]}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
-                    unsafe_allow_html=True
-                )
-                plt.plot(interseccao[0], interseccao[1], 'rx')  # Marcar a interseção com um 'x' vermelho
+    # Plotar as interseções
+    for idx, interseccao in enumerate(interseccoes):
+        if interseccao is not None:
+            st.markdown(
+                f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx]} e regressão {num_romanos[idx+1]}: Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
+                unsafe_allow_html=True
+            )
+            plt.plot(interseccao[0], interseccao[1], 'rx')  # 'x' vermelho no ponto de interseção
 
     if idioma == "Português":
         plt.xlabel('Carga (tf)')
@@ -323,7 +333,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
     if tabela is not None:
-        # Renomear as colunas para 'Carga' e 'Recalque' independentemente do idioma
+        # Renomear as colunas
         if "Carga (tf)" in tabela.columns and "Recalque (mm)" in tabela.columns:
             tabela = tabela.rename(columns={"Carga (tf)": "Carga", "Recalque (mm)": "Recalque"})
         elif "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
@@ -332,7 +342,7 @@ def primeiro_programa(idioma):
             st.error("Formato de coluna inválido. Certifique-se de que o arquivo contém 'Carga (tf)' e 'Recalque (mm)' ou 'Load (tf)' e 'Settlement (mm)'.")
             return
         
-        # Garantir que as colunas 'Carga' e 'Recalque' são numéricas
+        # Forçar numérico
         try:
             tabela['Carga'] = tabela['Carga'].astype(float)
             tabela['Recalque'] = tabela['Recalque'].astype(float)
@@ -343,7 +353,7 @@ def primeiro_programa(idioma):
         # Calcular a rigidez
         tabela['rigidez'] = tabela['Carga'] / tabela['Recalque']
 
-        # Calcular logaritmos
+        # Calcular log10
         tabela['logQ'] = tabela['Carga'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
         tabela['logReq'] = tabela['Recalque'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
         tabela['logRig'] = tabela['rigidez'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
@@ -353,7 +363,7 @@ def primeiro_programa(idioma):
             min_value=0.01, format="%.2f"
         )
 
-        # Inputs adicionais para carga e recalque
+        # Inputs para carga e recalque
         recalque_input = st.number_input(
             'Quer calcular a carga para qual recalque? (mm)' if idioma == "Português" else 'Which settlement do you want to calculate load for? (mm)',
             format="%.2f", min_value=0.0
@@ -365,7 +375,7 @@ def primeiro_programa(idioma):
 
         tabela = tabela.sort_values(by="Carga").reset_index(drop=True)
 
-        # Primeiro gráfico: Carga vs Recalque (com Plotly)
+        # Gráfico 1: Carga vs Recalque (Plotly)
         fig = px.scatter(
             tabela, x="Carga", y="Recalque",
             labels={
@@ -383,12 +393,11 @@ def primeiro_programa(idioma):
             yaxis_title="Recalque (mm)" if idioma == "Português" else "Settlement (mm)"
         )
 
-        # Anotar de 0 a n-1
         for i, row in tabela.iterrows():
             fig.add_annotation(
                 x=row["Carga"],
                 y=row["Recalque"],
-                text=str(i),  # sem +1
+                text=str(i),
                 showarrow=True,
                 arrowhead=1,
                 ax=20,
@@ -396,12 +405,12 @@ def primeiro_programa(idioma):
             )
 
         config_plotly = {
-            "staticPlot": True,       # Torna o gráfico estático
-            "displayModeBar": False   # Oculta a barra de ferramentas
+            "staticPlot": True,
+            "displayModeBar": False
         }
         st.plotly_chart(fig, config=config_plotly)
 
-        # Segundo gráfico: Carga vs Rigidez (com Plotly)
+        # Gráfico 2: Carga vs Rigidez (Plotly)
         fig2 = px.scatter(
             tabela, x="Carga", y="rigidez",
             labels={
@@ -422,7 +431,7 @@ def primeiro_programa(idioma):
             fig2.add_annotation(
                 x=row["Carga"],
                 y=row["rigidez"],
-                text=str(i),  # sem +1
+                text=str(i),
                 showarrow=True,
                 arrowhead=1,
                 ax=20,
@@ -431,7 +440,7 @@ def primeiro_programa(idioma):
 
         st.plotly_chart(fig2, config=config_plotly)
 
-        # Escolher o número de regressões
+        # Quantas regressões?
         num_regressoes = st.selectbox(
             'Quantas regressões:' if idioma == "Português" else 'How many regressions?', 
             [1, 2, 3], index=0
@@ -443,7 +452,6 @@ def primeiro_programa(idioma):
             lin_fim_key = f'lin_fim_{i}'
             tipo_regressao_key = f'tipo_regressao_{i}'
 
-            # Definir padrões para 0-based
             lin_in_default = st.session_state.get(lin_in_key, '0')
             lin_fim_default = st.session_state.get(lin_fim_key, str(len(tabela) - 1))
             tipo_regressao_default = st.session_state.get(tipo_regressao_key, 'linear')
@@ -460,7 +468,6 @@ def primeiro_programa(idioma):
                 key=lin_fim_key
             )
 
-            # Conversão para inteiro
             try:
                 lin_in = int(lin_in_str)
             except ValueError:
@@ -472,7 +479,6 @@ def primeiro_programa(idioma):
                 st.error(f"Entrada inválida para o ponto final da regressão {num_romanos[i+1]}. Insira um número inteiro.")
                 return
 
-            # Verificações 0-based
             if lin_in < 0 or lin_in >= len(tabela):
                 st.error(f"Ponto inicial da regressão {num_romanos[i+1]} deve estar entre 0 e {len(tabela)-1}.")
                 return
@@ -490,8 +496,12 @@ def primeiro_programa(idioma):
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
         
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
-            calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input)
+            calcular_regressao(
+                tabela, num_regressoes, pontos_tipos, 
+                diametro_estaca, idioma, 
+                carga_input, recalque_input
+            )
 
-# Defina o idioma aqui: 'Português' ou 'English'
+# Rode seu programa definindo o idioma
 idioma = 'Português'  # ou 'English'
 primeiro_programa(idioma)
