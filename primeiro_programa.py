@@ -155,7 +155,10 @@ def calcular_quc(reg, tipo_regressao, valor_critico):
             quc = np.nan
     return quc
 
-def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
+def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input, modo_plotagem):
+    """
+    :param modo_plotagem: String "Entre os pontos" ou "Até interseção"
+    """
     tabela = tabela.sort_values(by='Carga').reset_index(drop=True)
     x0 = tabela['Carga']
     y0 = tabela['rigidez']
@@ -174,15 +177,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     # Valor de recalque crítico
     recalque_critico = 0.1 * diametro_estaca
-
-    # ========= OPÇÃO DE PLOTAGEM =========
-    # Adicionamos um selectbox para escolher como as regressões serão plotadas
-    modo_plotagem = st.selectbox(
-        'Como deseja plotar as regressões?' if idioma == "Português" else 'How do you want to plot the regressions?',
-        ['Entre Pontos (lin_in até lin_fim)', 'Até Interseção'],
-        index=0
-    )
-    # =====================================
 
     # Calcula cada regressão
     for i in range(num_regressoes):
@@ -223,12 +217,11 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         )
 
         # Definir x_inicio e x_fim dependendo do modo escolhido
-        if modo_plotagem.startswith("Entre Pontos"):
+        if modo_plotagem == "Entre os pontos":
             # Modo "reta entre os pontos"
             x_inicio = tabela['Carga'].iloc[lin_in]
             x_fim = tabela['Carga'].iloc[lin_fim]
-        else:
-            # Modo "até interseção"
+        else:  # "Até interseção"
             if i == 0:
                 x_inicio = tabela['Carga'].iloc[lin_in]
             else:
@@ -324,10 +317,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
 
     # Plotar interseções
-    # (mesmo que o modo seja "Entre Pontos", podemos mostrar as interseções, se o usuário quiser analisar)
     for idx, interseccao in enumerate(interseccoes):
         if interseccao is not None:
-            # Ajusta o índice para ficar coerente (interseção entre i e i+1)
             st.markdown(
                 f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx]} e {num_romanos[idx+1]}: "
                 f"Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
@@ -452,11 +443,21 @@ def primeiro_programa(idioma):
             )
         st.plotly_chart(fig2, config=config_plotly)
 
-        # Escolher quantas regressões
+        # Quantidade de regressões
         num_regressoes = st.selectbox(
             'Quantas regressões:' if idioma == "Português" else 'How many regressions?', 
             [1, 2, 3], index=0
         )
+
+        # =======================
+        # MODO DE PLOTAGEM
+        # =======================
+        modo_plotagem = st.selectbox(
+            'Como deseja plotar as regressões?' if idioma == "Português" else 'How do you want to plot the regressions?',
+            ['Entre os pontos', 'Até interseção'],
+            index=0
+        )
+        # =======================
 
         pontos_tipos = []
         for i in range(num_regressoes):
@@ -507,11 +508,13 @@ def primeiro_programa(idioma):
 
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
         
+        # Botão para calcular
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
             calcular_regressao(
                 tabela, num_regressoes, pontos_tipos, 
                 diametro_estaca, idioma, 
-                carga_input, recalque_input
+                carga_input, recalque_input,
+                modo_plotagem  # <-- Passamos a escolha do modo para a função
             )
 
 # Rode seu programa definindo o idioma desejado
