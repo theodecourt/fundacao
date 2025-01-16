@@ -451,16 +451,6 @@ def primeiro_programa(idioma):
             [1, 2, 3], index=0
         )
 
-        # =======================
-        # MODO DE PLOTAGEM
-        # =======================
-        modo_plotagem = st.selectbox(
-            'Como deseja plotar as regressões?' if idioma == "Português" else 'How do you want to plot the regressions?',
-            ['Entre os pontos', 'Até interseção'],
-            index=0
-        )
-        # =======================
-
 
         pontos_tipos = []
         for i in range(num_regressoes):
@@ -510,6 +500,16 @@ def primeiro_programa(idioma):
             )
 
             pontos_tipos.append((lin_in, lin_fim, tipo_regressao))
+
+        # =======================
+        # MODO DE PLOTAGEM
+        # =======================
+        modo_plotagem = st.selectbox(
+            'Como deseja plotar as regressões?' if idioma == "Português" else 'How do you want to plot the regressions?',
+            ['Entre os pontos', 'Até interseção'],
+            index=0
+        )
+        # =======================
         
         # Botão para calcular
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
