@@ -443,12 +443,6 @@ def primeiro_programa(idioma):
             )
         st.plotly_chart(fig2, config=config_plotly)
 
-        # Quantidade de regressões
-        num_regressoes = st.selectbox(
-            'Quantas regressões:' if idioma == "Português" else 'How many regressions?', 
-            [1, 2, 3], index=0
-        )
-
         # =======================
         # MODO DE PLOTAGEM
         # =======================
@@ -458,6 +452,13 @@ def primeiro_programa(idioma):
             index=0
         )
         # =======================
+
+        # Quantidade de regressões
+        num_regressoes = st.selectbox(
+            'Quantas regressões:' if idioma == "Português" else 'How many regressions?', 
+            [1, 2, 3], index=0
+        )
+
 
         pontos_tipos = []
         for i in range(num_regressoes):
