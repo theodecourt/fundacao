@@ -334,7 +334,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 marker='x',           # continua sendo um 'x'
                 markersize=14,        # tamanho maior
                 markeredgewidth=3,    # espessura da linha do 'x'
-                color='yellow'        # cor amarela
+                color='black'        # cor amarela
             )
 
     # Finalizar o plot
