@@ -328,7 +328,14 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 f"Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
                 unsafe_allow_html=True
             )
-            plt.plot(interseccao[0], interseccao[1], 'rx')  # 'x' vermelho
+            plt.plot(
+                interseccao[0], 
+                interseccao[1], 
+                marker='x',           # continua sendo um 'x'
+                markersize=14,        # tamanho maior
+                markeredgewidth=3,    # espessura da linha do 'x'
+                color='yellow'        # cor amarela
+            )
 
     # Finalizar o plot
     if idioma == "Português":
