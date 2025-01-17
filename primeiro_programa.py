@@ -110,12 +110,12 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
         f_values = func_intersec(x_values)
         
         # Identificar onde a função muda de sinal
-        for i_step in range(len(x_values)-1):
-            if np.isnan(f_values[i_step]) or np.isnan(f_values[i_step+1]):
+        for i in range(len(x_values)-1):
+            if np.isnan(f_values[i]) or np.isnan(f_values[i+1]):
                 continue
-            if f_values[i_step] * f_values[i_step+1] < 0:
+            if f_values[i] * f_values[i+1] < 0:
                 try:
-                    raiz = brentq(func_intersec, x_values[i_step], x_values[i_step+1], xtol=1e-8)
+                    raiz = brentq(func_intersec, x_values[i], x_values[i+1], xtol=1e-8)
                     if not any(np.isclose(raiz, r[0], atol=1e-6) for r in [e for e in interseccoes if e is not None]):
                         if raiz > 0:  # Garantir que a carga é positiva
                             y = reg_linear[0] * raiz + reg_linear[1]
@@ -140,15 +140,15 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
 def calcular_quc(reg, tipo_regressao, valor_critico):
     """Cálculo de Quc (carga para um determinado recalque) dependendo do tipo de regressão."""
     if tipo_regressao == 'linear':
-        a = reg[0]
-        b = reg[1]
+        a = reg[1]
+        b = reg[0]
         try:
-            quc = (valor_critico - b) / a
+            quc = a / ((1 / valor_critico) - b)
         except ZeroDivisionError:
             quc = np.nan
     else:  # log
         def func_quc_log(x):
-            return 10**(reg[0] * np.log10(x) + reg[1]) - (valor_critico * x)
+            return 10**(reg[0] * np.log10(x) + reg[1]) - (x / valor_critico)
         try:
             quc = brentq(func_quc_log, 1e-2, 1e5)
         except ValueError:
@@ -173,99 +173,109 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     regressions = []
     tipos = []
+    interseccoes = []
 
-    # Primeiro passo: Ajustar todas as regressões
+    # Valor de recalque crítico
+    recalque_critico = 0.1 * diametro_estaca
+
+    # Calcula cada regressão
     for i in range(num_regressoes):
         lin_in = pontos_tipos[i][0]
         lin_fim = pontos_tipos[i][1]
         tipo_regressao = pontos_tipos[i][2]
         
+        # Subconjunto do dataframe usado na i-ésima regressão
         subset = tabela.iloc[lin_in: lin_fim + 1]
 
+        # Ajuste do modelo
         if tipo_regressao == 'linear':
             # Ajuste linear direto: rigidez vs. carga
             reg = np.polyfit(subset['Carga'], subset['rigidez'], deg=1)
+            # Preparar para cálculo de R²
+            p = np.poly1d(reg)
+            y_pred = p(subset['Carga'])         # valores previstos de rigidez
+            y_obs = subset['rigidez']           # valores observados de rigidez
+            # Montar equação (para exibir na tela)
+            equacao = f'rigidez (tf/mm) = {reg[0]:.4f} * Carga (tf) + {reg[1]:.4f}'
         else:
             # Ajuste log-log: logRig vs. logQ
-            subset = subset.dropna(subset=['logQ', 'logRig'])
             reg = np.polyfit(subset['logQ'], subset['logRig'], deg=1)
-        
+            p = np.poly1d(reg)
+            logRig_pred = p(subset['logQ'])
+            y_pred = 10**(logRig_pred)          # valores previstos (desfazendo o log10)
+            y_obs = subset['rigidez']
+            equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
+
+        # Cálculo de R² baseado em y_pred e y_obs (ambos em escala linear)
+        corr_matrix = np.corrcoef(y_pred, y_obs)
+        corr = corr_matrix[0, 1]
+        R_sq = corr**2
+
+        # Guardar a regressão
         regressions.append(reg)
         tipos.append(tipo_regressao)
 
-    # Segundo passo: Calcular todas as interseções
-    interseccoes = []
-    for i in range(num_regressoes -1):
-        reg1 = regressions[i]
-        reg2 = regressions[i+1]
-        tipo1 = tipos[i]
-        tipo2 = tipos[i+1]
-        
-        # Definir intervalo para a interseção
-        x_min = max(tabela['Carga'].min(), tabela['Carga'].iloc[pontos_tipos[i+1][0]])
-        x_max = tabela['Carga'].max()
-        
-        interseccao = calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max)
-        interseccoes.append(interseccao)
+        # Se já houver uma regressão anterior, tenta calcular a interseção
+        if i > 0:
+            x_min = max(tabela['Carga'].min(), tabela['Carga'].iloc[lin_in])
+            x_max = tabela['Carga'].max()
+            interseccao = calcular_interseccao(regressions[i-1], reg, tipos[i-1], tipo_regressao, x_min, x_max)
+            interseccoes.append(interseccao)
+        else:
+            interseccoes.append(None)
 
-    # Terceiro passo: Plotar todas as regressões com os limites corretos
-    for i in range(num_regressoes):
-        tipo_regressao = tipos[i]
-        reg = regressions[i]
-        lin_in = pontos_tipos[i][0]
-        lin_fim = pontos_tipos[i][1]
-        
+        # Definir x para plotar o segmento de regressão
         if modo_plotagem == "Entre os pontos":
             x_inicio = tabela['Carga'].iloc[lin_in]
-            x_fim_plot = tabela['Carga'].iloc[lin_fim]
+            x_fim = tabela['Carga'].iloc[lin_fim]
         else:  # "Até interseção"
             if i == 0:
                 x_inicio = tabela['Carga'].iloc[lin_in]
             else:
-                if interseccoes[i-1] is not None:
-                    x_inicio = interseccoes[i-1][0]
+                interseccao_anterior = interseccoes[i]
+                if interseccao_anterior is not None:
+                    x_inicio = interseccao_anterior[0]
                 else:
                     st.warning(
-                        f"Não foi possível calcular a interseção anterior para a regressão {num_romanos[i]}. "
+                        f"Não foi possível calcular a interseção entre as regressões {num_romanos[i]} e {num_romanos[i+1]}. "
                         "Usando ponto inicial da segmentação."
                     )
                     x_inicio = tabela['Carga'].iloc[lin_in]
-            
-            if i < num_regressoes -1:
-                if interseccoes[i] is not None:
-                    x_fim_plot = interseccoes[i][0]
+
+            if i == num_regressoes - 1:
+                x_fim = tabela['Carga'].iloc[lin_fim]
+            else:
+                interseccao_atual = interseccoes[i+1] if (i+1) < len(interseccoes) else None
+                if interseccao_atual is not None:
+                    x_fim = interseccao_atual[0]
                 else:
                     st.warning(
-                        f"Não foi possível calcular a interseção para a regressão {num_romanos[i+1]}. "
+                        f"Não foi possível calcular a interseção entre as regressões {num_romanos[i+1]} e {num_romanos[i+2]}. "
                         "Usando ponto final da segmentação."
                     )
-                    x_fim_plot = tabela['Carga'].iloc[lin_fim]
-            else:
-                x_fim_plot = tabela['Carga'].iloc[lin_fim]
-        
+                    x_fim = tabela['Carga'].iloc[lin_fim]
+
         # Gera pontos de x para plotar
-        x_vals = np.linspace(x_inicio, x_fim_plot, 100)
+        x_vals = np.linspace(x_inicio, x_fim, 100)
         
         # Previsão de y para plot
         if tipo_regressao == 'linear':
             p_model = np.poly1d(reg)
             y_vals = p_model(x_vals)
-            equacao = f'rigidez (tf/mm) = {reg[0]:.4f} * Carga (tf) + {reg[1]:.4f}'
         else:
             p_model = np.poly1d(reg)
             y_vals = 10**(p_model(np.log10(x_vals)))
-            equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
-        
+
         # Plot no Matplotlib
         plt.plot(x_vals, y_vals, color=colors[i], label=f'Regressão {i+1}' if idioma == 'Português' else f'Regression {i+1}')
 
         # Adicionar rótulo (número romano) no meio do trecho
-        x_centro = (x_inicio + x_fim_plot) / 2
+        x_centro = (x_inicio + x_fim) / 2
         if tipo_regressao == 'linear':
             y_centro = p_model(x_centro)
         else:
             y_centro = 10**(p_model(np.log10(x_centro)))
-        
+
         plt.text(
             x_centro, 
             y_centro * 1.15,
@@ -276,18 +286,6 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             ha='center'
         )
         
-        # Cálculo de R² baseado em y_pred e y_obs (ambos em escala linear)
-        if tipo_regressao == 'linear':
-            y_pred = p_model(tabela['Carga'].iloc[lin_in: lin_fim +1])
-            y_obs = tabela['rigidez'].iloc[lin_in: lin_fim +1]
-        else:
-            y_pred = 10**(p_model(tabela['logQ'].iloc[lin_in: lin_fim +1]))
-            y_obs = tabela['rigidez'].iloc[lin_in: lin_fim +1]
-        
-        corr_matrix = np.corrcoef(y_pred, y_obs)
-        corr = corr_matrix[0, 1]
-        R_sq = corr**2
-
         # Exibir detalhes no Streamlit
         if idioma == "Português":
             st.markdown(
@@ -297,7 +295,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Tipo de regressão:', tipo_regressao.capitalize())
             st.markdown(f'<span style="color:{colors[i]};"><strong>Equação da regressão:</strong> {equacao}</span>', unsafe_allow_html=True)
             st.write('R²:', R_sq)
-            st.write(f'Quc para a regressão {num_romanos[i+1]}: {calcular_quc(reg, tipo_regressao, 0.1 * diametro_estaca):.2f} tf')
+            st.write(f'Quc para a regressão {num_romanos[i+1]}: {calcular_quc(reg, tipo_regressao, recalque_critico):.2f} tf')
         else:
             st.markdown(
                 f"<b style='color:{colors[i]};'>Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}</b>",
@@ -306,7 +304,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.write('Regression type:', tipo_regressao.capitalize())
             st.markdown(f'<span style="color:{colors[i]};"><strong>Regression equation:</strong> {equacao}</span>', unsafe_allow_html=True)
             st.write('R²:', R_sq)
-            st.write(f'Quc for regression {num_romanos[i+1]}: {calcular_quc(reg, tipo_regressao, 0.1 * diametro_estaca):.2f} tf')
+            st.write(f'Quc for regression {num_romanos[i+1]}: {calcular_quc(reg, tipo_regressao, recalque_critico):.2f} tf')
 
         # Se o usuário forneceu um recalque_input > 0, calcula a carga correspondente
         if recalque_input > 0:
@@ -333,10 +331,10 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             plt.plot(
                 interseccao[0], 
                 interseccao[1], 
-                marker='x',           # Continua sendo um 'x'
-                markersize=14,        # Tamanho maior
-                markeredgewidth=3,    # Espessura da linha do 'x'
-                color='magenta'        # Cor 
+                marker='x',           # continua sendo um 'x'
+                markersize=14,        # tamanho maior
+                markeredgewidth=3,    # espessura da linha do 'x'
+                color='magenta'        # cor 
             )
 
     # Finalizar o plot
@@ -375,6 +373,7 @@ def primeiro_programa(idioma):
         # Calcular rigidez e logs
         tabela['rigidez'] = tabela['Carga'] / tabela['Recalque']
         tabela['logQ'] = tabela['Carga'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
+        tabela['logReq'] = tabela['Recalque'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
         tabela['logRig'] = tabela['rigidez'].apply(lambda x: math.log10(x) if x > 0 else np.nan)
 
         diametro_estaca = st.number_input(
@@ -519,7 +518,7 @@ def primeiro_programa(idioma):
             index=0
         )
         # =======================
-
+        
         # Botão para calcular
         if st.button('Calcular Regressões' if idioma == "Português" else 'Calculate Regressions'):
             calcular_regressao(
