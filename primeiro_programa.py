@@ -514,7 +514,7 @@ def primeiro_programa(idioma):
         # =======================
         modo_plotagem = st.selectbox(
             'Como deseja plotar as regressões?' if idioma == "Português" else 'How do you want to plot the regressions?',
-            ['Entre os pontos', 'Até interseção'],
+            ['Até interseção', 'Entre os pontos'],
             index=0
         )
         # =======================
