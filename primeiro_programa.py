@@ -76,7 +76,7 @@ def carregar_tabela(idioma):
 def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
     """
     Calcula TODAS as interseções entre duas regressões (linear ou log),
-    no intervalo [x_min, x_max].
+    dentro do intervalo [x_min, x_max].
     Retorna lista de (x_int, y_int).
     """
     interseccoes = []
@@ -88,7 +88,6 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
     if tipo1 == 'linear' and tipo2 == 'linear':
         a1, b1 = reg1[0], reg1[1]
         a2, b2 = reg2[0], reg2[1]
-        # y1 = a1*x + b1, y2 = a2*x + b2
         if not np.isclose(a1, a2, atol=1e-12):
             x_int = (b2 - b1) / (a1 - a2)
             y_int = a1*x_int + b1
@@ -99,7 +98,6 @@ def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
     elif tipo1 == 'log' and tipo2 == 'log':
         a1, b1 = reg1
         a2, b2 = reg2
-        # y1 = 10^( a1*log10(x) + b1 ), y2 = 10^( a2*log10(x) + b2 )
         if not np.isclose(a1, a2, atol=1e-12):
             log_x = (b2 - b1)/(a1 - a2)
             x_int = 10**(log_x)
@@ -169,10 +167,9 @@ def calcular_quc(reg, tipo, rec):
 def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, idioma, carga_input, recalque_input):
     """
     1) Ajusta cada regressão (subset).
-    2) Plota no domínio [c_min, c_max], 'cortando' ou 'emendando'
-       as regressões nas interseções.
-    3) Cada regressão tem uma cor própria, e
-       o texto no Streamlit também sai na cor correspondente.
+    2) Plota no domínio [c_min, c_max], 'cortando' as regressões nas interseções.
+    3) Cada regressão recebe uma cor específica e também uma
+       anotação (rótulo) com número romano em cima da curva.
     """
 
     # Ordenar
@@ -189,12 +186,9 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     # Domínio global
     c_min, c_max = x_all.min(), x_all.max()
 
-    # Vamos usar um colormap ou paleta de cores fixas
-    # Ex.: tab10, que retorna RGBA -> convertemos em string #rrggbb
+    # Usar um colormap (tab10) para gerar cores diferentes
     import matplotlib
-    color_map = matplotlib.cm.get_cmap('tab10')
-    # Se quiser uma lista simples, por ex.:
-    # colors_list = ["blue","red","green","orange","purple","brown","cyan"]
+    color_map = matplotlib.cm.get_cmap('tab10') 
 
     regs = []
     tipos = []
@@ -202,7 +196,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
 
     # 1) Ajustar cada regressão
     for i in range(num_regressoes):
-        # Obter subset
+        # Subset
         lin_in, lin_fim, t_reg = pontos_tipos[i]
         df_sub = tabela.iloc[lin_in : lin_fim+1]
 
@@ -215,7 +209,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             coefs = np.polyfit(df_sub['logQ'], df_sub['logRig'], 1)
             eq_str = f"log(rig) = {coefs[0]:.4f}*log(x) + {coefs[1]:.4f}"
 
-        # Calcular R²
+        # R²
         if t_reg=='linear':
             y_pred = np.polyval(coefs, df_sub['Carga'])
         else:
@@ -224,17 +218,16 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         corr = np.corrcoef(df_sub['rigidez'], y_pred)[0,1]
         R2 = corr**2 if not np.isnan(corr) else 0
 
-        # Definir a cor do i-ésimo
-        color_rgba = color_map(i % 10)  # RGBA
-        color_hex = mcolors.to_hex(color_rgba)  # Converte p/ string #RRGGBB
+        # Cor da regressão i
+        rgba_col = color_map(i % 10)  # RGBA
+        color_hex = mcolors.to_hex(rgba_col)
         cores.append(color_hex)
 
-        # Mostrar no Streamlit em cor
+        # Imprimir no Streamlit em cor
         if idioma=='Português':
-            # Usamos st.markdown com unsafe_allow_html=True p/ colorir
             st.markdown(
-                f"<strong><span style='color:{color_hex};'>Regressão {num_romanos[i+1]} - "
-                f"pontos {lin_in} a {lin_fim}</span></strong>",
+                f"<strong><span style='color:{color_hex};'>"
+                f"Regressão {num_romanos[i+1]} - Pontos {lin_in} a {lin_fim}</span></strong>",
                 unsafe_allow_html=True
             )
             st.markdown(
@@ -246,8 +239,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             )
         else:
             st.markdown(
-                f"<strong><span style='color:{color_hex};'>Regression {num_romanos[i+1]} - "
-                f"points {lin_in} to {lin_fim}</span></strong>",
+                f"<strong><span style='color:{color_hex};'>"
+                f"Regression {num_romanos[i+1]} - Points {lin_in} to {lin_fim}</span></strong>",
                 unsafe_allow_html=True
             )
             st.markdown(
@@ -258,43 +251,28 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
                 unsafe_allow_html=True
             )
 
-        # Se pedido, Quc p/ certo recalque
+        # Se pedido, Quc p/ recalque
         if recalque_input>0:
             quc_val = calcular_quc(coefs, t_reg, recalque_input)
             if idioma=='Português':
-                st.write(
-                    f"Carga para recalque {recalque_input:.2f} mm "
-                    f"≈ {quc_val:.2f} tf (Reg. {num_romanos[i+1]})"
-                )
+                st.write(f"Carga para recalque {recalque_input:.2f} mm ≈ {quc_val:.2f} tf (Reg. {num_romanos[i+1]})")
             else:
-                st.write(
-                    f"Load for settlement {recalque_input:.2f} mm "
-                    f"≈ {quc_val:.2f} tf (Reg. {num_romanos[i+1]})"
-                )
+                st.write(f"Load for settlement {recalque_input:.2f} mm ≈ {quc_val:.2f} tf (Reg. {num_romanos[i+1]})")
 
-        # Se pedido, recalque p/ certa carga
+        # Se pedido, recalque p/ carga
         if carga_input>0:
-            def rigidez_model(x):
+            def rig_model(x):
                 if t_reg=='linear':
                     return np.polyval(coefs, x)
                 else:
                     if x<=0: return np.nan
                     return 10**( np.polyval(coefs, np.log10(x)) )
-            rig_val = rigidez_model(carga_input)
-            if rig_val>0:
-                rec_val = carga_input/rig_val
-            else:
-                rec_val = np.nan
+            rig_val = rig_model(carga_input)
+            rec_val = (carga_input / rig_val) if rig_val>0 else np.nan
             if idioma=='Português':
-                st.write(
-                    f"Recalque para carga {carga_input:.2f} tf "
-                    f"≈ {rec_val:.2f} mm (Reg. {num_romanos[i+1]})"
-                )
+                st.write(f"Recalque para carga {carga_input:.2f} tf ≈ {rec_val:.2f} mm (Reg. {num_romanos[i+1]})")
             else:
-                st.write(
-                    f"Settlement for load {carga_input:.2f} tf "
-                    f"≈ {rec_val:.2f} mm (Reg. {num_romanos[i+1]})"
-                )
+                st.write(f"Settlement for load {carga_input:.2f} tf ≈ {rec_val:.2f} mm (Reg. {num_romanos[i+1]})")
 
         regs.append(coefs)
         tipos.append(t_reg)
@@ -315,7 +293,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         if tipo=='linear':
             return np.polyval(reg, x)
         else:
-            if x<=0: return np.nan
+            if x<=0:
+                return np.nan
             return 10**( np.polyval(reg, np.log10(x)) )
 
     # 3) Plotar cada regressão com sua cor, cortando nas interseções
@@ -324,11 +303,10 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         r = regs[i]
         t = tipos[i]
 
-        # Achar x_in e x_out
+        # Início x
         if i==0:
             x_start = c_min
         else:
-            # Se houver interseção com a anterior
             if inters_list[i-1] is not None:
                 xi, yi = inters_list[i-1]
                 if c_min <= xi <= c_max:
@@ -338,6 +316,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             else:
                 x_start = c_min
 
+        # Final x
         if i== num_regressoes-1:
             x_end = c_max
         else:
@@ -350,13 +329,26 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             else:
                 x_end = c_max
 
-        # Gera pontos
         if x_end < x_start:
             continue
 
         xx = np.linspace(x_start, x_end, 300)
         yy = [rigidez_model(r, t, x) for x in xx]
         plt.plot(xx, yy, label=f"Reg. {num_romanos[i+1]}", color=color_hex)
+
+        # Inserir rótulo (número romano) no "meio" da curva
+        x_mid = (x_start + x_end)/2
+        y_mid = rigidez_model(r, t, x_mid)
+        if not np.isnan(y_mid):
+            plt.text(
+                x_mid,
+                y_mid * 1.05,  # 5% acima
+                f"{num_romanos[i+1]}",
+                color=color_hex,
+                fontsize=14,
+                fontweight='bold',
+                ha='center'
+            )
 
     # 4) Marcar 'X' nas interseções
     for i, inters in enumerate(inters_list):
@@ -383,7 +375,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     else:
         plt.xlabel("Load (tf)")
         plt.ylabel("Stiffness (tf/mm)")
-        plt.title("Load vs. Stiffness Regressions")
+        plt.title("Load vs Stiffness Regressions")
 
     plt.legend(loc='best')
     st.pyplot(plt)
