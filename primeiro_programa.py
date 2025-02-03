@@ -207,198 +207,55 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
     plt.figure(figsize=(10, 6))
     plt.plot(x0, y0, 'go', label='Dados Originais' if idioma == 'Português' else 'Original Data')
 
-    # Numerar os pontos no gráfico
-    for i, (x, y) in enumerate(zip(x0, y0)):
-        plt.annotate(str(i), (x, y), textcoords="offset points", xytext=(0,5), ha='center')
-
     regressions = []
     tipos = []
     interseccoes = []
 
-    # Valor de recalque crítico = 0.1 * diâmetro (critério do método, por ex.)
     recalque_critico = 0.1 * diametro_estaca
 
     for i in range(num_regressoes):
         lin_in = pontos_tipos[i][0]
         lin_fim = pontos_tipos[i][1]
         tipo_regressao = pontos_tipos[i][2]
-        
-        # Subconjunto do dataframe para a i-ésima regressão
         subset = tabela.iloc[lin_in: lin_fim + 1]
 
-        # Ajuste do modelo
         if tipo_regressao == 'linear':
-            # Ajuste linear: rigidez vs. carga
             reg = np.polyfit(subset['Carga'], subset['rigidez'], deg=1)
-            p = np.poly1d(reg)
-            y_pred = p(subset['Carga'])
-            y_obs = subset['rigidez']
             equacao = f'rigidez = {reg[0]:.4f} * Carga + {reg[1]:.4f}'
         else:
-            # Ajuste log-log
             reg = np.polyfit(subset['logQ'], subset['logRig'], deg=1)
-            p = np.poly1d(reg)
-            logRig_pred = p(subset['logQ'])
-            y_pred = 10**(logRig_pred)
-            y_obs = subset['rigidez']
             equacao = f'log(rigidez) = {reg[0]:.4f} * log(Carga) + {reg[1]:.4f}'
-
-        # R² (com base em valores em escala linear)
-        corr_matrix = np.corrcoef(y_pred, y_obs)
-        corr = corr_matrix[0, 1]
-        R_sq = corr**2
 
         regressions.append(reg)
         tipos.append(tipo_regressao)
 
-        # ### CORREÇÃO PRINCIPAL ###
-        # Vamos definir melhor x_min e x_max para a busca de interseção:
-        # Use o menor e maior valor de carga dos DOIS trechos (i-1 e i).
-        # Mas só calculamos interseção a partir do segundo trecho (i>0).
         if i > 0:
-            # Intervalo do trecho anterior
             prev_lin_in = pontos_tipos[i-1][0]
             prev_lin_fim = pontos_tipos[i-1][1]
             subset_prev = tabela.iloc[prev_lin_in: prev_lin_fim + 1]
 
-            x_min_current = min(subset['Carga'].min(), subset['Carga'].max())
-            x_max_current = max(subset['Carga'].min(), subset['Carga'].max())
+            x_min_global = max(subset['Carga'].min(), subset_prev['Carga'].min())
+            x_max_global = min(subset['Carga'].max(), subset_prev['Carga'].max())
 
-            x_min_prev = min(subset_prev['Carga'].min(), subset_prev['Carga'].max())
-            x_max_prev = max(subset_prev['Carga'].min(), subset_prev['Carga'].max())
-
-            # O intervalo para a interseção deve ser a sobreposição
-            x_min_global = max(x_min_current, x_min_prev)
-            x_max_global = min(x_max_current, x_max_prev)
-
-            # Evitar que x_min_global > x_max_global
             if x_min_global < x_max_global:
                 interseccao = calcular_interseccao(
-                    regressions[i-1], reg,
-                    tipos[i-1], tipo_regressao,
-                    x_min_global, x_max_global
+                    regressions[i-1], reg, tipos[i-1], tipo_regressao, x_min_global, x_max_global
                 )
                 interseccoes.append(interseccao)
             else:
-                st.write(f"Não há sobreposição de intervalos entre as regressões {num_romanos[i]} e {num_romanos[i+1]}.")
                 interseccoes.append(None)
         else:
             interseccoes.append(None)
 
-        # Definir x para plotar o “segmento” da regressão
-        if modo_plotagem == "Entre os pontos":
-            x_inicio = tabela['Carga'].iloc[lin_in]
-            x_fim = tabela['Carga'].iloc[lin_fim]
-        else:  # "Até interseção"
-            if i == 0:
-                # Primeiro segmento começa no lin_in e vai até a eventual interseção futura
-                x_inicio = tabela['Carga'].iloc[lin_in]
-            else:
-                interseccao_anterior = interseccoes[i]
-                if interseccao_anterior is not None:
-                    x_inicio = interseccao_anterior[0]
-                else:
-                    x_inicio = tabela['Carga'].iloc[lin_in]
+        intersecao_str = ''
+        if interseccoes[i] is not None:
+            intersecao_str = f' (Interseção: x={interseccoes[i][0]:.4f}, y={interseccoes[i][1]:.4f})'
 
-            if i == num_regressoes - 1:
-                x_fim = tabela['Carga'].iloc[lin_fim]
-            else:
-                # Próxima interseção (se existir)
-                # Mas ela só será calculada no próximo loop => ou seja, i+1
-                # Podemos deixar como fallback o ponto final
-                x_fim = tabela['Carga'].iloc[lin_fim]
-
-        x_vals = np.linspace(x_inicio, x_fim, 100)
-
-        if tipo_regressao == 'linear':
-            p_model = np.poly1d(reg)
-            y_vals = p_model(x_vals)
-        else:
-            p_model = np.poly1d(reg)
-            y_vals = 10**(p_model(np.log10(x_vals)))
-        
-        plt.plot(x_vals, y_vals, color=colors[i], label=f'Regressão {i+1}' if idioma == 'Português' else f'Regression {i+1}')
-
-        # Adicionar rótulo (número romano) no meio do trecho
-        x_centro = (x_inicio + x_fim) / 2
-        if tipo_regressao == 'linear':
-            y_centro = p_model(x_centro)
-        else:
-            y_centro = 10**(p_model(np.log10(x_centro)))
-
-        plt.text(
-            x_centro, 
-            y_centro * 1.15,
-            f'{num_romanos[i+1]}', 
-            color=colors[i], 
-            fontsize=20, 
-            fontweight='bold',
-            ha='center'
+        st.markdown(
+            f'<span style="color:{colors[i]};"><strong>Equação da regressão {num_romanos[i+1]}:</strong> {equacao}{intersecao_str}</span>',
+            unsafe_allow_html=True
         )
 
-        # Exibir informações no Streamlit
-        if idioma == "Português":
-            st.markdown(
-                f"<b style='color:{colors[i]};'>Pontos utilizados na regressão {num_romanos[i+1]}: {lin_in} até {lin_fim}</b>",
-                unsafe_allow_html=True
-            )
-            st.write('Tipo de regressão:', tipo_regressao.capitalize())
-            st.markdown(f'<span style="color:{colors[i]};"><strong>Equação da regressão:</strong> {equacao}</span>', unsafe_allow_html=True)
-            st.write('R²:', R_sq)
-            st.write(f'Quc para a regressão {num_romanos[i+1]}: {calcular_quc(reg, tipo_regressao, recalque_critico):.2f} tf')
-        else:
-            st.markdown(
-                f"<b style='color:{colors[i]};'>Points used in regression {num_romanos[i+1]}: {lin_in} to {lin_fim}</b>",
-                unsafe_allow_html=True
-            )
-            st.write('Regression type:', tipo_regressao.capitalize())
-            st.markdown(f'<span style="color:{colors[i]};"><strong>Regression equation:</strong> {equacao}</span>', unsafe_allow_html=True)
-            st.write('R²:', R_sq)
-            st.write(f'Quc for regression {num_romanos[i+1]}: {calcular_quc(reg, tipo_regressao, recalque_critico):.2f} tf')
-
-        # Se o usuário forneceu recalque_input > 0, calcula a carga
-        if recalque_input > 0:
-            carga_calculada = calcular_quc(reg, tipo_regressao, recalque_input)
-            st.write(f"A carga para o recalque {recalque_input:.2f} mm é {carga_calculada:.2f} tf.")
-
-        # Se o usuário forneceu carga_input > 0, calcula o recalque
-        if carga_input > 0:
-            if tipo_regressao == 'linear':
-                rigidez_calc = p_model(carga_input)
-            else:
-                rigidez_calc = 10**(p_model(np.log10(carga_input)))
-            recalque_calculado = carga_input / rigidez_calc
-            st.write(f"Para a carga de {carga_input:.2f} tf, o recalque será {recalque_calculado:.2f} mm.")
-
-    # Plotar interseções
-    for idx, interseccao in enumerate(interseccoes):
-        if interseccao is not None:
-            st.markdown(
-                f"<span style='color:black;'>Interseção entre regressão {num_romanos[idx]} e {num_romanos[idx+1]}: "
-                f"Carga = {interseccao[0]:.4f}, Rigidez = {interseccao[1]:.4f}</span>",
-                unsafe_allow_html=True
-            )
-            plt.plot(
-                interseccao[0], 
-                interseccao[1], 
-                marker='x',
-                markersize=14,
-                markeredgewidth=3,
-                color='magenta'
-            )
-
-    # Finalizar plot
-    if idioma == "Português":
-        plt.xlabel('Carga (tf)')
-        plt.ylabel('Rigidez (tf/mm)')
-        plt.title('Regressão de Carga x Rigidez')
-    else:
-        plt.xlabel('Load (tf)')
-        plt.ylabel('Stiffness (tf/mm)')
-        plt.title('Load vs Stiffness Regression')
-
-    plt.legend(loc='best')
-    st.pyplot(plt)
 
 def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
