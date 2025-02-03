@@ -233,7 +233,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.markdown(
                 f"<span style='color:{color_hex};'>"
                 f"Tipo: {t_reg}<br>"
-                f"Equação: {eq_str}<br>"
+                f"<strong>Equação:</strong> {eq_str}<br>"
                 f"R²: {R2:.4f}</span>",
                 unsafe_allow_html=True
             )
@@ -246,7 +246,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
             st.markdown(
                 f"<span style='color:{color_hex};'>"
                 f"Type: {t_reg}<br>"
-                f"Equation: {eq_str}<br>"
+                f"<strong>Equação:</strong> {eq_str}<br>"
                 f"R²: {R2:.4f}</span>",
                 unsafe_allow_html=True
             )
