@@ -341,8 +341,8 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         y_mid = rigidez_model(r, t, x_mid)
         if not np.isnan(y_mid):
             plt.text(
-                x_mid,
-                y_mid * 1.05,  # 5% acima
+                x_mid * 1.2,
+                y_mid * 1.2,  # 5% acima
                 f"{num_romanos[i+1]}",
                 color=color_hex,
                 fontsize=14,
