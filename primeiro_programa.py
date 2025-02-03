@@ -342,7 +342,7 @@ def calcular_regressao(tabela, num_regressoes, pontos_tipos, diametro_estaca, id
         if not np.isnan(y_mid):
             plt.text(
                 x_mid * 1.02,
-                y_mid * 1.1,  # 5% acima
+                y_mid * 1.12,  # 5% acima
                 f"{num_romanos[i+1]}",
                 color=color_hex,
                 fontsize=14,
