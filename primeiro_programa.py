@@ -33,45 +33,50 @@ def botao_download_exemplo(idioma):
     st.markdown(
         """
         <style>
-        .stDownloadButton button {
-            background-color: #FFC300;
-            color: black;
-            font-weight: bold;
-        }
-        .stDownloadButton button:hover {
-            background-color: #FFB000;
-            color: black;
-        }
+        .stDownloadButton button { background-color: #FFC300; color: black; font-weight: bold; }
+        .stDownloadButton button:hover { background-color: #FFB000; color: black; }
         </style>
-        """,
-        unsafe_allow_html=True
+        """, unsafe_allow_html=True
     )
-
     label = "Baixar exemplo" if idioma == "Português" else "Download example"
     file_name = "exemplo.xlsx" if idioma == "Português" else "example.xlsx"
-    st.download_button(
-        label=label, 
-        data=output, 
-        file_name=file_name, 
-        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
+    st.download_button(label=label, data=output, file_name=file_name,
+                       mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
 
 def carregar_tabela(idioma):
-    uploaded_file = st.file_uploader(
-        "Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file", 
-        type=["csv", "xlsx"]
+    # Escolha do método de entrada de dados
+    metodo = st.radio(
+        "Método de entrada de dados:" if idioma == "Português" else "Data input method:",
+        ("Upload arquivo", "Entrada manual") if idioma == "Português" else ("Upload file", "Manual input")
     )
-    if uploaded_file:
-        try:
-            if uploaded_file.name.endswith('.csv'):
-                return pd.read_csv(uploaded_file, delimiter=';')
-            elif uploaded_file.name.endswith('.xlsx'):
-                return pd.read_excel(uploaded_file)
-        except Exception as e:
-            st.error(f"Erro ao carregar o arquivo: {e}")
-            return None
-    botao_download_exemplo(idioma)
-    return None
+    if metodo in ("Upload arquivo", "Upload file"):
+        uploaded_file = st.file_uploader(
+            "Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file",
+            type=["csv", "xlsx"]
+        )
+        if uploaded_file:
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    return pd.read_csv(uploaded_file, delimiter=';')
+                elif uploaded_file.name.endswith('.xlsx'):
+                    return pd.read_excel(uploaded_file)
+            except Exception as e:
+                st.error(f"Erro ao carregar o arquivo: {e}")
+                return None
+        botao_download_exemplo(idioma)
+        return None
+    else:
+        # Entrada manual via data editor
+        st.write("Insira os dados manualmente:" if idioma == "Português" else "Enter data manually:")
+        cols = ["Carga (tf)", "Recalque (mm)"] if idioma == "Português" else ["Load (tf)", "Settlement (mm)"]
+        df_manual = st.experimental_data_editor(
+            pd.DataFrame(columns=cols),
+            num_rows="dynamic",
+            use_container_width=True
+        )
+        return df_manual if df_manual is not None and not df_manual.empty else None
+
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
     """
