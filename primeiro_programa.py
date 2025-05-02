@@ -67,15 +67,30 @@ def carregar_tabela(idioma):
         botao_download_exemplo(idioma)
         return None
     else:
-        # Entrada manual via data editor
-        st.write("Insira os dados manualmente:" if idioma == "Português" else "Enter data manually:")
+        # Entrada manual via texto CSV
+        st.write("Insira os dados manualmente no formato CSV (sep=';') com cabeçalho" 
+                 if idioma == "Português" 
+                 else "Enter data manually in CSV format (sep=';') including header:")
         cols = ["Carga (tf)", "Recalque (mm)"] if idioma == "Português" else ["Load (tf)", "Settlement (mm)"]
-        df_manual = st.experimental_data_editor(
-            pd.DataFrame(columns=cols),
-            num_rows="dynamic",
-            use_container_width=True
+        exemplo = ";".join(cols) + "\n"
+        texto = st.text_area(
+            "Entrada CSV" if idioma == "Português" else "CSV Input",
+            value=exemplo,
+            height=150
         )
-        return df_manual if df_manual is not None and not df_manual.empty else None
+        if texto:
+            try:
+                from io import StringIO
+                df = pd.read_csv(StringIO(texto), sep=';')
+                if all(col in df.columns for col in cols):
+                    return df
+                else:
+                    st.error("Colunas inválidas. Use o cabeçalho correto e sep=';'.")
+                    return None
+            except Exception as e:
+                st.error(f"Erro ao processar CSV: {e}")
+                return None
+        return None
 
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
