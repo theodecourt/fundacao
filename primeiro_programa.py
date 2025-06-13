@@ -47,8 +47,7 @@ def botao_download_exemplo(idioma):
 def carregar_tabela(idioma):
     metodo = st.radio(
         "Como você quer inserir os dados?" if idioma=="Português" else "How do you want to input the data?",
-        ("Editor", "Upload arquivo", "Entrada manual") if idioma=="Português"
-         else ("Editor", "Upload file", "Manual input")
+        ("Editor", "Upload arquivo") if idioma=="Português" else ("Editor", "Upload file")
     )
 
     # 1) Editor interativo
@@ -69,21 +68,20 @@ def carregar_tabela(idioma):
         return df_edit.rename(columns={"Carga":"Carga","Recalque":"Recalque"})
 
     # 2) Upload de arquivo
-    if metodo in ("Upload arquivo", "Upload file"):
-        uploaded = st.file_uploader(
-            "Escolha CSV ou XLSX" if idioma=="Português" else "Choose CSV or XLSX",
-            type=["csv","xlsx"]
-        )
-        if uploaded:
-            try:
-                if uploaded.name.endswith('.csv'):
-                    return pd.read_csv(uploaded, delimiter=';')
-                return pd.read_excel(uploaded)
-            except Exception as e:
-                st.error(f"Erro ao carregar: {e}")
-        else:
-            botao_download_exemplo(idioma)
-        return None
+    uploaded = st.file_uploader(
+        "Escolha CSV ou XLSX" if idioma=="Português" else "Choose CSV or XLSX",
+        type=["csv","xlsx"]
+    )
+    if uploaded:
+        try:
+            if uploaded.name.endswith('.csv'):
+                return pd.read_csv(uploaded, delimiter=';')
+            return pd.read_excel(uploaded)
+        except Exception as e:
+            st.error(f"Erro ao carregar: {e}")
+    else:
+        botao_download_exemplo(idioma)
+    return None
 
     # 3) Entrada manual de CSV
     st.write("Insira os dados em CSV (sep=';'):" if idioma=="Português"
