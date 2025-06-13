@@ -29,19 +29,19 @@ def botao_download_exemplo(idioma):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         tabela_exemplo.to_excel(writer, index=False, sheet_name='Exemplo')
+        writer.save()
     output.seek(0)
-    st.markdown(
-        """
-        <style>
-        .stDownloadButton button { background-color: #FFC300; color: black; font-weight: bold; }
-        .stDownloadButton button:hover { background-color: #FFB000; color: black; }
-        </style>
-        """, unsafe_allow_html=True
-    )
+    
     label = "Baixar exemplo" if idioma == "Português" else "Download example"
     file_name = "exemplo.xlsx" if idioma == "Português" else "example.xlsx"
-    st.download_button(label=label, data=output, file_name=file_name,
-                       mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    
+    # Passa o conteúdo bruto do BytesIO para o botão
+    st.download_button(
+        label=label,
+        data=output.getvalue(),
+        file_name=file_name,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 
 def carregar_tabela(idioma):
