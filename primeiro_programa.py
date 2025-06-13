@@ -45,52 +45,25 @@ def botao_download_exemplo(idioma):
 
 
 def carregar_tabela(idioma):
-    # Escolha do método de entrada de dados
-    metodo = st.radio(
-        "Método de entrada de dados:" if idioma == "Português" else "Data input method:",
-        ("Upload arquivo", "Entrada manual") if idioma == "Português" else ("Upload file", "Manual input")
+    st.write("📋 **Edite os valores diretamente na tabela abaixo:**")
+    # Cria tabela vazia ou com exemplo
+    if 'df_editor' not in st.session_state:
+        df = criar_tabela_exemplo(idioma)
+        df = df.rename(columns={
+            "Carga (tf)"   if idioma=="Português" else "Load (tf)": "Carga",
+            "Recalque (mm)" if idioma=="Português" else "Settlement (mm)": "Recalque"
+        })
+        st.session_state.df_editor = df
+    # Editor de dados interativo
+    df_edit = st.experimental_data_editor(
+        st.session_state.df_editor,
+        num_rows="dynamic",
+        use_container_width=True
     )
-    if metodo in ("Upload arquivo", "Upload file"):
-        uploaded_file = st.file_uploader(
-            "Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file",
-            type=["csv", "xlsx"]
-        )
-        if uploaded_file:
-            try:
-                if uploaded_file.name.endswith('.csv'):
-                    return pd.read_csv(uploaded_file, delimiter=';')
-                elif uploaded_file.name.endswith('.xlsx'):
-                    return pd.read_excel(uploaded_file)
-            except Exception as e:
-                st.error(f"Erro ao carregar o arquivo: {e}")
-                return None
-        botao_download_exemplo(idioma)
-        return None
-    else:
-        # Entrada manual via texto CSV
-        st.write("Insira os dados manualmente no formato CSV (sep=';') com cabeçalho" 
-                 if idioma == "Português" 
-                 else "Enter data manually in CSV format (sep=';') including header:")
-        cols = ["Carga (tf)", "Recalque (mm)"] if idioma == "Português" else ["Load (tf)", "Settlement (mm)"]
-        exemplo = ";".join(cols) + "\n"
-        texto = st.text_area(
-            "Entrada CSV" if idioma == "Português" else "CSV Input",
-            value=exemplo,
-            height=150
-        )
-        if texto:
-            try:
-                from io import StringIO
-                df = pd.read_csv(StringIO(texto), sep=';')
-                if all(col in df.columns for col in cols):
-                    return df
-                else:
-                    st.error("Colunas inválidas. Use o cabeçalho correto e sep=';'.")
-                    return None
-            except Exception as e:
-                st.error(f"Erro ao processar CSV: {e}")
-                return None
-        return None
+    # Atualiza o estado
+    st.session_state.df_editor = df_edit
+    # Renomeia colunas de volta para o restante do fluxo
+    return df_edit.rename(columns={"Carga": "Carga", "Recalque": "Recalque"})
 
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
