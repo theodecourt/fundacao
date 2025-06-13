@@ -75,8 +75,17 @@ def carregar_tabela(idioma):
     if uploaded:
         try:
             if uploaded.name.endswith('.csv'):
-                return pd.read_csv(uploaded, delimiter=';')
-            return pd.read_excel(uploaded)
+                df = pd.read_csv(uploaded, delimiter=';')
+            else:
+                df = pd.read_excel(uploaded)
+            # normalize de uma vez
+            df = df.rename(columns={
+                "Carga (tf)": "Carga",
+                "Recalque (mm)": "Recalque",
+                "Load (tf)":  "Carga",
+                "Settlement (mm)": "Recalque"
+            })
+            return df
         except Exception as e:
             st.error(f"Erro ao carregar: {e}")
     else:
