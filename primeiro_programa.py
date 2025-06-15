@@ -51,33 +51,54 @@ def carregar_tabela(idioma):
     )
 
     if metodo in ("Upload arquivo", "Upload file"):
-        # … mantém exatamente seu código de upload …
-        return tabela_por_upload
+        # === Upload de arquivo (mantido igual ao seu código original) ===
+        uploaded_file = st.file_uploader(
+            "Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file",
+            type=["csv", "xlsx"]
+        )
+        if uploaded_file:
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    return pd.read_csv(uploaded_file, delimiter=';')
+                elif uploaded_file.name.endswith('.xlsx'):
+                    return pd.read_excel(uploaded_file)
+            except Exception as e:
+                st.error(f"Erro ao carregar o arquivo: {e}")
+                return None
+
+        # Se não houver upload, oferecemos o exemplo para download
+        botao_download_exemplo(idioma)
+        return None
 
     else:
-        # Nova interface manual amigável
+        # === Entrada manual com tabela editável ===
         if idioma == "Português":
-            st.write("📝 **Insira manualmente os valores**\n\n"
-                     "- Clique em uma célula para editar.\n"
-                     "- Para adicionar linha, use o botão “+” no canto da tabela.\n"
-                     "- Deixe em branco para remover.")
+            st.write(
+                "📝 **Insira manualmente os valores**\n\n"
+                "- Clique em uma célula para editar.\n"
+                "- Para adicionar uma linha, use o “+” no canto da tabela.\n"
+                "- Linhas em branco serão ignoradas."
+            )
             colunas = ["Carga (tf)", "Recalque (mm)"]
         else:
-            st.write("📝 **Enter values manually**\n\n"
-                     "- Click a cell to edit.\n"
-                     "- Use the “+” button to add rows.\n"
-                     "- Leave rows blank to remove.")
+            st.write(
+                "📝 **Enter values manually**\n\n"
+                "- Click a cell to edit.\n"
+                "- Use the “+” button to add rows.\n"
+                "- Blank rows will be ignored."
+            )
             colunas = ["Load (tf)", "Settlement (mm)"]
 
-        # Data editor dinâmico
+        # Data editor dinâmico do Streamlit
         df_manual = st.experimental_data_editor(
             pd.DataFrame(columns=colunas),
             num_rows="dynamic",
             use_container_width=True
         )
-        # Se tiver pelo menos um valor preenchido:
+
+        # Se o usuário preencheu ao menos uma célula, retornamos o DataFrame
         if not df_manual.dropna(how="all").empty:
-            return df_manual
+            return df_manual.reset_index(drop=True)
 
         return None
 
