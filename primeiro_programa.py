@@ -424,22 +424,26 @@ def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
     if tabela is not None:
         # Renomear colunas
-        if "Carga (tf)" in tabela.columns and "Recalque (mm)" in tabela.columns:
+        if {"Carga", "Recalque"}.issubset(tabela.columns):
+            # já está no formato certo
+            pass
+        elif {"Carga (tf)", "Recalque (mm)"}.issubset(tabela.columns):
             tabela = tabela.rename(columns={
-                "Carga (tf)": "Carga",
+                "Carga (tf)":   "Carga",
                 "Recalque (mm)": "Recalque"
             })
-        elif "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
+        elif {"Load (tf)", "Settlement (mm)"}.issubset(tabela.columns):
             tabela = tabela.rename(columns={
-                "Load (tf)": "Carga",
+                "Load (tf)":       "Carga",
                 "Settlement (mm)": "Recalque"
             })
         else:
             st.error(
                 "Formato de coluna inválido. "
                 "Certifique-se de que o arquivo contém "
-                "'Carga (tf)' e 'Recalque (mm)' ou "
-                "'Load (tf)' e 'Settlement (mm)'."
+                "'Carga (tf)' e 'Recalque (mm)', "
+                "'Load (tf)' e 'Settlement (mm)', "
+                "ou já as colunas 'Carga' e 'Recalque'."
             )
             return
 
