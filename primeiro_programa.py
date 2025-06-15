@@ -45,72 +45,52 @@ def botao_download_exemplo(idioma):
 
 
 def carregar_tabela(idioma):
+    # Escolha do método de entrada de dados
     metodo = st.radio(
-        "Como você quer inserir os dados?" if idioma=="Português" else "How do you want to input the data?",
-        ("Editor", "Upload arquivo") if idioma=="Português" else ("Editor", "Upload file")
+        "Método de entrada de dados:" if idioma == "Português" else "Data input method:",
+        ("Upload arquivo", "Entrada manual") if idioma == "Português" else ("Upload file", "Manual input")
     )
-
-    # 1) Editor interativo
-    if metodo == "Editor":
-        st.write("📋 **Edite os dados diretamente na tabela abaixo:**")
-        if 'df_editor' not in st.session_state:
-            df0 = criar_tabela_exemplo(idioma).rename(columns={
-                ("Carga (tf)" if idioma=="Português" else "Load (tf)"): "Carga",
-                ("Recalque (mm)" if idioma=="Português" else "Settlement (mm)"): "Recalque"
-            })
-            st.session_state.df_editor = df0
-        df_edit = st.data_editor(
-            st.session_state.df_editor,
-            num_rows="dynamic",
-            use_container_width=True
+    if metodo in ("Upload arquivo", "Upload file"):
+        uploaded_file = st.file_uploader(
+            "Escolha o arquivo CSV ou XLSX" if idioma == "Português" else "Choose the CSV or XLSX file",
+            type=["csv", "xlsx"]
         )
-        st.session_state.df_editor = df_edit
-        return df_edit.rename(columns={"Carga":"Carga","Recalque":"Recalque"})
-
-    # 2) Upload de arquivo
-    uploaded = st.file_uploader(
-        "Escolha CSV ou XLSX" if idioma=="Português" else "Choose CSV or XLSX",
-        type=["csv","xlsx"]
-    )
-    if uploaded:
-        try:
-            if uploaded.name.endswith('.csv'):
-                df = pd.read_csv(uploaded, delimiter=';')
-            else:
-                df = pd.read_excel(uploaded)
-            # normalize de uma vez
-            df = df.rename(columns={
-                "Carga (tf)": "Carga",
-                "Recalque (mm)": "Recalque",
-                "Load (tf)":  "Carga",
-                "Settlement (mm)": "Recalque"
-            })
-            return df
-        except Exception as e:
-            st.error(f"Erro ao carregar: {e}")
-    else:
+        if uploaded_file:
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    return pd.read_csv(uploaded_file, delimiter=';')
+                elif uploaded_file.name.endswith('.xlsx'):
+                    return pd.read_excel(uploaded_file)
+            except Exception as e:
+                st.error(f"Erro ao carregar o arquivo: {e}")
+                return None
         botao_download_exemplo(idioma)
-    return None
-
-    # 3) Entrada manual de CSV
-    st.write("Insira os dados em CSV (sep=';'):" if idioma=="Português"
-             else "Enter data as CSV (sep=';'):")
-    cols = ["Carga (tf)","Recalque (mm)"] if idioma=="Português" else ["Load (tf)","Settlement (mm)"]
-    exemplo = ";".join(cols) + "\n"
-    texto = st.text_area("CSV Input", value=exemplo, height=150)
-    if texto:
-        try:
-            from io import StringIO
-            df = pd.read_csv(StringIO(texto), sep=';')
-            if all(c in df.columns for c in cols):
-                return df.rename(columns={
-                    cols[0]:"Carga", cols[1]:"Recalque"
-                })
-            else:
-                st.error("Cabeçalho inválido ou separador errado.")
-        except Exception as e:
-            st.error(f"Erro ao processar CSV: {e}")
-    return None
+        return None
+    else:
+        # Entrada manual via texto CSV
+        st.write("Insira os dados manualmente no formato CSV (sep=';') com cabeçalho" 
+                 if idioma == "Português" 
+                 else "Enter data manually in CSV format (sep=';') including header:")
+        cols = ["Carga (tf)", "Recalque (mm)"] if idioma == "Português" else ["Load (tf)", "Settlement (mm)"]
+        exemplo = ";".join(cols) + "\n"
+        texto = st.text_area(
+            "Entrada CSV" if idioma == "Português" else "CSV Input",
+            value=exemplo,
+            height=150
+        )
+        if texto:
+            try:
+                from io import StringIO
+                df = pd.read_csv(StringIO(texto), sep=';')
+                if all(col in df.columns for col in cols):
+                    return df
+                else:
+                    st.error("Colunas inválidas. Use o cabeçalho correto e sep=';'.")
+                    return None
+            except Exception as e:
+                st.error(f"Erro ao processar CSV: {e}")
+                return None
+        return None
 
 
 def calcular_interseccao(reg1, reg2, tipo1, tipo2, x_min, x_max):
@@ -424,26 +404,22 @@ def primeiro_programa(idioma):
     tabela = carregar_tabela(idioma)
     if tabela is not None:
         # Renomear colunas
-        if {"Carga", "Recalque"}.issubset(tabela.columns):
-            # já está no formato certo
-            pass
-        elif {"Carga (tf)", "Recalque (mm)"}.issubset(tabela.columns):
+        if "Carga (tf)" in tabela.columns and "Recalque (mm)" in tabela.columns:
             tabela = tabela.rename(columns={
-                "Carga (tf)":   "Carga",
+                "Carga (tf)": "Carga",
                 "Recalque (mm)": "Recalque"
             })
-        elif {"Load (tf)", "Settlement (mm)"}.issubset(tabela.columns):
+        elif "Load (tf)" in tabela.columns and "Settlement (mm)" in tabela.columns:
             tabela = tabela.rename(columns={
-                "Load (tf)":       "Carga",
+                "Load (tf)": "Carga",
                 "Settlement (mm)": "Recalque"
             })
         else:
             st.error(
                 "Formato de coluna inválido. "
                 "Certifique-se de que o arquivo contém "
-                "'Carga (tf)' e 'Recalque (mm)', "
-                "'Load (tf)' e 'Settlement (mm)', "
-                "ou já as colunas 'Carga' e 'Recalque'."
+                "'Carga (tf)' e 'Recalque (mm)' ou "
+                "'Load (tf)' e 'Settlement (mm)'."
             )
             return
 
