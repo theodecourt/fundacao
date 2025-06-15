@@ -71,7 +71,7 @@ def carregar_tabela(idioma):
         return None
 
     else:
-        # === Entrada manual com tabela editável ===
+        # === Entrada manual com tabela editável, compatível com várias versões ===
         if idioma == "Português":
             st.write(
                 "📝 **Insira manualmente os valores**\n\n"
@@ -89,15 +89,30 @@ def carregar_tabela(idioma):
             )
             colunas = ["Load (tf)", "Settlement (mm)"]
 
-        # Data editor dinâmico do Streamlit
-        df_manual = st.experimental_data_editor(
-            pd.DataFrame(columns=colunas),
-            num_rows="dynamic",
-            use_container_width=True
-        )
+        df_manual = None
+        # tenta usar o novo data_editor
+        if hasattr(st, "data_editor"):
+            df_manual = st.data_editor(
+                pd.DataFrame(columns=colunas),
+                num_rows="dynamic",
+                use_container_width=True
+            )
+        # senão, tenta o experimental antigo
+        elif hasattr(st, "experimental_data_editor"):
+            df_manual = st.experimental_data_editor(
+                pd.DataFrame(columns=colunas),
+                num_rows="dynamic",
+                use_container_width=True
+            )
+        else:
+            st.error(
+                "Este Streamlit não suporta edição de tabela. "
+                "Use o Upload de arquivo ou atualize o Streamlit."
+            )
+            return None
 
-        # Se o usuário preencheu ao menos uma célula, retornamos o DataFrame
-        if not df_manual.dropna(how="all").empty:
+        # Retorna somente se o usuário preencheu algo
+        if df_manual is not None and not df_manual.dropna(how="all").empty:
             return df_manual.reset_index(drop=True)
 
         return None
